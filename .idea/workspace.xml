@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CMakeRunConfigurationManager" shouldGenerate="true" shouldDeleteObsolete="true">
+    <generated>
+      <config projectName="P2Pplay" targetName="P2Pplay" />
+      <config projectName="P2Pplay" targetName="P2Pplay_autogen" />
+    </generated>
+  </component>
+  <component name="CMakeSettings">
+    <configurations>
+      <configuration PROFILE_NAME="Debug" CONFIG_NAME="Debug" />
+    </configurations>
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="83b10bcd-8514-449b-9b93-240eb7c5964c" name="Default Changelist" comment="" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="ClangdSettings">
+    <option name="formatViaClangd" value="false" />
+  </component>
+  <component name="ExecutionTargetManager" SELECTED_TARGET="CMakeBuildProfile:Debug" />
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="CMakeLists.txt" />
+      </list>
+    </option>
+  </component>
+  <component name="ProjectId" id="3H1VZCMr5FVRbgbSJ9XfVqXQ087" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">
+    <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+    <property name="WebServerToolWindowFactoryState" value="false" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+  </component>
+  <component name="RunManager" selected="CMake Application.P2Pplay">
+    <configuration name="P2Pplay" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="P2Pplay" TARGET_NAME="P2Pplay" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="P2Pplay" RUN_TARGET_NAME="P2Pplay">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="P2Pplay_autogen" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="P2Pplay" TARGET_NAME="P2Pplay_autogen" CONFIG_NAME="Debug">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <list>
+      <item itemvalue="CMake Application.P2Pplay" />
+      <item itemvalue="CMake Application.P2Pplay_autogen" />
+    </list>
+  </component>
+  <component name="SvnConfiguration">
+    <configuration />
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="83b10bcd-8514-449b-9b93-240eb7c5964c" name="Default Changelist" comment="" />
+      <created>1785035614944</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1785035614944</updated>
+      <workItem from="1785035616161" duration="13152000" />
+      <workItem from="1785139336382" duration="15259000" />
+      <workItem from="1785237071944" duration="8446000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="1" />
+  </component>
+  <component name="WindowStateProjectService">
+    <state x="404" y="205" key="com.intellij.ide.util.TipDialog" timestamp="1785237072259">
+      <screen x="0" y="0" width="1440" height="762" />
+    </state>
+    <state x="404" y="205" key="com.intellij.ide.util.TipDialog/0.0.1440.762@0.0.1440.762" timestamp="1785237072259" />
+    <state x="387" y="88" width="672" height="678" key="search.everywhere.popup" timestamp="1785245781451">
+      <screen x="0" y="0" width="1440" height="762" />
+    </state>
+    <state x="387" y="88" width="672" height="678" key="search.everywhere.popup/0.0.1440.762@0.0.1440.762" timestamp="1785245781451" />
+  </component>
+</project>

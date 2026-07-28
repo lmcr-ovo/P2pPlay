@@ -1,0 +1,4 @@
+D:/CODE/C++/qt/P2Pplay/cmake-build-debug/CMakeFiles/P2Pplay.dir
+D:/CODE/C++/qt/P2Pplay/cmake-build-debug/CMakeFiles/edit_cache.dir
+D:/CODE/C++/qt/P2Pplay/cmake-build-debug/CMakeFiles/rebuild_cache.dir
+D:/CODE/C++/qt/P2Pplay/cmake-build-debug/CMakeFiles/P2Pplay_autogen.dir
