@@ -7,11 +7,11 @@ enum class SignalingType : quint16 {
     Unknown = 0,
     CreateRoom = 1,
     RoomCreated = 2,
-    JoinRoom = 3,
+    JoinRoomResult = 3,
     JoinResult = 4,
     PeerJoined = 5,
-    UdpEndPointReady = 6,
-    PeerEndPoint = 7,
+    UdpEndpointReady = 6,
+    PeerEndpoint = 7,
     P2pResultReport = 8,
     Error = 9
 };

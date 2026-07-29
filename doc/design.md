@@ -168,7 +168,7 @@ StatsCollector
 ```text
 SignalingClient
   连接服务器 TCP 9000
-  发送 CreateRoom / JoinRoom / P2pResultReport
+  发送 CreateRoom / JoinRoomResult / P2pResultReport
   接收服务器信令
   调用 SignalingCodec 解码
   把消息交给 ClientSignalingDispatcher
@@ -275,7 +275,7 @@ TCP 信令：
 ```text
 CreateRoom
 RoomCreated
-JoinRoom
+JoinRoomResult
 JoinRoomResult
 PeerJoined
 UdpEndpointReady

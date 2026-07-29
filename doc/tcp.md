@@ -24,7 +24,7 @@ payload     length bytes
 其中：
 
 ```text
-type    信令类型，比如 CreateRoom / JoinRoom / PeerEndpoint
+type    信令类型，比如 CreateRoom / JoinRoomResult / PeerEndpoint
 length  payload 长度
 payload JSON 内容
 ```
@@ -36,7 +36,7 @@ enum class SignalingType : quint16 {
     Unknown = 0,
     CreateRoom = 1,
     RoomCreated = 2,
-    JoinRoom = 3,
+    JoinRoomResult = 3,
     JoinRoomResult = 4,
     PeerJoined = 5,
     UdpEndpointReady = 6,
