@@ -15,6 +15,7 @@ class P2pUdpTransport : public QObject {
 public:
     explicit P2pUdpTransport(QUdpSocket* sock, QObject* parent);
     bool sendFrame(UdpChannelType channel, UdpFrameType type, const QByteArray& payload);
+    void setPeerEndpoint(const QHostAddress& address, quint16 port);
 
 signals:
     void errorOccurred(const QString& reason);

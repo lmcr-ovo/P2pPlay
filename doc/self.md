@@ -4,3 +4,13 @@ to do:
 connect带参语法
 map
 tcp/udp搭建
+继承
+cmake 
+    target_include_dir
+    public private
+初始化过程
+流控
+frameReady 跨进程连接，改为传值
+const
+constexpr
+threa

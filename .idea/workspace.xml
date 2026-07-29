@@ -2,8 +2,14 @@
 <project version="4">
   <component name="CMakeRunConfigurationManager" shouldGenerate="true" shouldDeleteObsolete="true">
     <generated>
-      <config projectName="P2Pplay" targetName="P2Pplay" />
-      <config projectName="P2Pplay" targetName="P2Pplay_autogen" />
+      <config projectName="P2Pplay" targetName="Udp_autogen" />
+      <config projectName="P2Pplay" targetName="Common_autogen" />
+      <config projectName="P2Pplay" targetName="testUdp_autogen" />
+      <config projectName="P2Pplay" targetName="Common" />
+      <config projectName="P2Pplay" targetName="testUdp1_autogen" />
+      <config projectName="P2Pplay" targetName="testUdp1" />
+      <config projectName="P2Pplay" targetName="Udp" />
+      <config projectName="P2Pplay" targetName="testUdp" />
     </generated>
   </component>
   <component name="CMakeSettings">
@@ -12,7 +18,37 @@
     </configurations>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="83b10bcd-8514-449b-9b93-240eb7c5964c" name="Default Changelist" comment="" />
+    <list default="true" id="83b10bcd-8514-449b-9b93-240eb7c5964c" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Common/CMakeLists.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Udp/CMakeLists.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Udp/test/CMakeLists.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Udp/test/testUdp.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/CMakeLists.txt" beforeDir="false" afterPath="$PROJECT_DIR$/CMakeLists.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Udp/P2pUdpTransport.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Udp/P2pUdpTransport.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Udp/P2pUdpTransport.h" beforeDir="false" afterPath="$PROJECT_DIR$/Udp/P2pUdpTransport.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Udp/UdpFragmenter.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Udp/UdpFragmenter.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Udp/UdpFrameReassembler.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Udp/UdpFrameReassembler.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Udp/UdpFrameReassembler.h" beforeDir="false" afterPath="$PROJECT_DIR$/Udp/UdpFrameReassembler.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Udp/UdpPacket.h" beforeDir="false" afterPath="$PROJECT_DIR$/Udp/UdpPacket.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Udp/UdpPacketCodec.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Udp/UdpPacketCodec.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Udp/UdpPacketCodec.h" beforeDir="false" afterPath="$PROJECT_DIR$/Udp/UdpPacketCodec.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/cmake-build-debug/CMakeCache.txt" beforeDir="false" afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeCache.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/CMakeRuleHashes.txt" beforeDir="false" afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/CMakeRuleHashes.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/Makefile.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/Makefile.cmake" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/Makefile2" beforeDir="false" afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/Makefile2" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/Progress/1" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/Progress/2" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/Progress/3" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/Progress/count.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/TargetDirectories.txt" beforeDir="false" afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/TargetDirectories.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/progress.marks" beforeDir="false" afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/progress.marks" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/cmake-build-debug/Makefile" beforeDir="false" afterPath="$PROJECT_DIR$/cmake-build-debug/Makefile" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/cmake-build-debug/P2Pplay.cbp" beforeDir="false" afterPath="$PROJECT_DIR$/cmake-build-debug/P2Pplay.cbp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/cmake-build-debug/cmake_install.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/cmake-build-debug/cmake_install.cmake" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/doc/self.md" beforeDir="false" afterPath="$PROJECT_DIR$/doc/self.md" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -29,30 +65,71 @@
       </list>
     </option>
   </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
   <component name="ProjectId" id="3H1VZCMr5FVRbgbSJ9XfVqXQ087" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
   <component name="PropertiesComponent">
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+    <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/../RemoteControl" />
   </component>
-  <component name="RunManager" selected="CMake Application.P2Pplay">
-    <configuration name="P2Pplay" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="P2Pplay" TARGET_NAME="P2Pplay" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="P2Pplay" RUN_TARGET_NAME="P2Pplay">
+  <component name="RunManager" selected="CMake Application.testUdp1">
+    <configuration name="Common" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="P2Pplay" TARGET_NAME="Common" CONFIG_NAME="Debug">
       <method v="2">
         <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
       </method>
     </configuration>
-    <configuration name="P2Pplay_autogen" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="P2Pplay" TARGET_NAME="P2Pplay_autogen" CONFIG_NAME="Debug">
+    <configuration name="Common_autogen" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="P2Pplay" TARGET_NAME="Common_autogen" CONFIG_NAME="Debug">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="Udp" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="P2Pplay" TARGET_NAME="Udp" CONFIG_NAME="Debug">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="Udp_autogen" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="P2Pplay" TARGET_NAME="Udp_autogen" CONFIG_NAME="Debug">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="testUdp" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="P2Pplay" TARGET_NAME="testUdp" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="P2Pplay" RUN_TARGET_NAME="testUdp">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="testUdp1" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="P2Pplay" TARGET_NAME="testUdp1" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="P2Pplay" RUN_TARGET_NAME="testUdp1">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="testUdp1_autogen" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="P2Pplay" TARGET_NAME="testUdp1_autogen" CONFIG_NAME="Debug">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="testUdp_autogen" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="P2Pplay" TARGET_NAME="testUdp_autogen" CONFIG_NAME="Debug">
       <method v="2">
         <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
       </method>
     </configuration>
     <list>
-      <item itemvalue="CMake Application.P2Pplay" />
-      <item itemvalue="CMake Application.P2Pplay_autogen" />
+      <item itemvalue="CMake Application.Common" />
+      <item itemvalue="CMake Application.Common_autogen" />
+      <item itemvalue="CMake Application.Udp" />
+      <item itemvalue="CMake Application.Udp_autogen" />
+      <item itemvalue="CMake Application.testUdp" />
+      <item itemvalue="CMake Application.testUdp1" />
+      <item itemvalue="CMake Application.testUdp1_autogen" />
+      <item itemvalue="CMake Application.testUdp_autogen" />
     </list>
   </component>
   <component name="SvnConfiguration">
@@ -67,7 +144,10 @@
       <updated>1785035614944</updated>
       <workItem from="1785035616161" duration="13152000" />
       <workItem from="1785139336382" duration="15259000" />
-      <workItem from="1785237071944" duration="8446000" />
+      <workItem from="1785237071944" duration="14731000" />
+      <workItem from="1785252819339" duration="2092000" />
+      <workItem from="1785282638001" duration="2949000" />
+      <workItem from="1785322462405" duration="1566000" />
     </task>
     <servers />
   </component>
@@ -75,13 +155,53 @@
     <option name="version" value="1" />
   </component>
   <component name="WindowStateProjectService">
-    <state x="404" y="205" key="com.intellij.ide.util.TipDialog" timestamp="1785237072259">
+    <state x="431" y="102" key="#Common" timestamp="1785252401733">
       <screen x="0" y="0" width="1440" height="762" />
     </state>
-    <state x="404" y="205" key="com.intellij.ide.util.TipDialog/0.0.1440.762@0.0.1440.762" timestamp="1785237072259" />
-    <state x="387" y="88" width="672" height="678" key="search.everywhere.popup" timestamp="1785245781451">
+    <state x="431" y="102" key="#Common/0.0.1440.762@0.0.1440.762" timestamp="1785252401733" />
+    <state x="501" y="136" key="FileChooserDialogImpl" timestamp="1785252409768">
       <screen x="0" y="0" width="1440" height="762" />
     </state>
-    <state x="387" y="88" width="672" height="678" key="search.everywhere.popup/0.0.1440.762@0.0.1440.762" timestamp="1785245781451" />
+    <state x="501" y="136" key="FileChooserDialogImpl/0.0.1440.762@0.0.1440.762" timestamp="1785252409768" />
+    <state width="1398" height="190" key="GridCell.Tab.0.bottom" timestamp="1785323123952">
+      <screen x="0" y="0" width="1440" height="762" />
+    </state>
+    <state width="1398" height="190" key="GridCell.Tab.0.bottom/0.0.1440.762@0.0.1440.762" timestamp="1785323123952" />
+    <state width="1398" height="190" key="GridCell.Tab.0.center" timestamp="1785323123952">
+      <screen x="0" y="0" width="1440" height="762" />
+    </state>
+    <state width="1398" height="190" key="GridCell.Tab.0.center/0.0.1440.762@0.0.1440.762" timestamp="1785323123952" />
+    <state width="1398" height="190" key="GridCell.Tab.0.left" timestamp="1785323123952">
+      <screen x="0" y="0" width="1440" height="762" />
+    </state>
+    <state width="1398" height="190" key="GridCell.Tab.0.left/0.0.1440.762@0.0.1440.762" timestamp="1785323123952" />
+    <state width="1398" height="190" key="GridCell.Tab.0.right" timestamp="1785323123952">
+      <screen x="0" y="0" width="1440" height="762" />
+    </state>
+    <state width="1398" height="190" key="GridCell.Tab.0.right/0.0.1440.762@0.0.1440.762" timestamp="1785323123952" />
+    <state width="1398" height="237" key="GridCell.Tab.1.bottom" timestamp="1785323001511">
+      <screen x="0" y="0" width="1440" height="762" />
+    </state>
+    <state width="1398" height="237" key="GridCell.Tab.1.bottom/0.0.1440.762@0.0.1440.762" timestamp="1785323001511" />
+    <state width="1398" height="237" key="GridCell.Tab.1.center" timestamp="1785323001511">
+      <screen x="0" y="0" width="1440" height="762" />
+    </state>
+    <state width="1398" height="237" key="GridCell.Tab.1.center/0.0.1440.762@0.0.1440.762" timestamp="1785323001511" />
+    <state width="1398" height="237" key="GridCell.Tab.1.left" timestamp="1785323001511">
+      <screen x="0" y="0" width="1440" height="762" />
+    </state>
+    <state width="1398" height="237" key="GridCell.Tab.1.left/0.0.1440.762@0.0.1440.762" timestamp="1785323001511" />
+    <state width="1398" height="237" key="GridCell.Tab.1.right" timestamp="1785323001511">
+      <screen x="0" y="0" width="1440" height="762" />
+    </state>
+    <state width="1398" height="237" key="GridCell.Tab.1.right/0.0.1440.762@0.0.1440.762" timestamp="1785323001511" />
+    <state x="404" y="205" key="com.intellij.ide.util.TipDialog" timestamp="1785322468064">
+      <screen x="0" y="0" width="1440" height="762" />
+    </state>
+    <state x="404" y="205" key="com.intellij.ide.util.TipDialog/0.0.1440.762@0.0.1440.762" timestamp="1785322468064" />
+    <state x="389" y="90" width="672" height="678" key="search.everywhere.popup" timestamp="1785248358034">
+      <screen x="0" y="0" width="1440" height="762" />
+    </state>
+    <state x="389" y="90" width="672" height="678" key="search.everywhere.popup/0.0.1440.762@0.0.1440.762" timestamp="1785248358034" />
   </component>
 </project>

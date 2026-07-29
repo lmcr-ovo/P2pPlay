@@ -35,6 +35,9 @@ set(CMAKE_MAKEFILE_DEPENDS
   "D:/CLion 2019.3.6/bin/cmake/win/share/cmake-3.15/Modules/Platform/WindowsPaths.cmake"
   "D:/CLion 2019.3.6/bin/cmake/win/share/cmake-3.15/Modules/ProcessorCount.cmake"
   "../CMakeLists.txt"
+  "../Common/CMakeLists.txt"
+  "../Udp/CMakeLists.txt"
+  "../Udp/test/CMakeLists.txt"
   "CMakeFiles/3.15.3/CMakeCCompiler.cmake"
   "CMakeFiles/3.15.3/CMakeCXXCompiler.cmake"
   "CMakeFiles/3.15.3/CMakeRCCompiler.cmake"
@@ -84,12 +87,20 @@ set(CMAKE_MAKEFILE_OUTPUTS
 
 # Byproducts of CMake generate step:
 set(CMAKE_MAKEFILE_PRODUCTS
-  "CMakeFiles/P2Pplay_autogen.dir/AutogenInfo.cmake"
   "CMakeFiles/CMakeDirectoryInformation.cmake"
+  "Common/CMakeFiles/CMakeDirectoryInformation.cmake"
+  "Udp/CMakeFiles/CMakeDirectoryInformation.cmake"
+  "Udp/test/CMakeFiles/CMakeDirectoryInformation.cmake"
   )
 
 # Dependency information for all targets:
 set(CMAKE_DEPEND_INFO_FILES
-  "CMakeFiles/P2Pplay.dir/DependInfo.cmake"
-  "CMakeFiles/P2Pplay_autogen.dir/DependInfo.cmake"
+  "Common/CMakeFiles/Common.dir/DependInfo.cmake"
+  "Common/CMakeFiles/Common_autogen.dir/DependInfo.cmake"
+  "Udp/CMakeFiles/Udp.dir/DependInfo.cmake"
+  "Udp/CMakeFiles/Udp_autogen.dir/DependInfo.cmake"
+  "Udp/test/CMakeFiles/testUdp.dir/DependInfo.cmake"
+  "Udp/test/CMakeFiles/testUdp1.dir/DependInfo.cmake"
+  "Udp/test/CMakeFiles/testUdp_autogen.dir/DependInfo.cmake"
+  "Udp/test/CMakeFiles/testUdp1_autogen.dir/DependInfo.cmake"
   )

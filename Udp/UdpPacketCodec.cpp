@@ -4,15 +4,15 @@
 
 #include "UdpPacketCodec.h"
 
-QByteArray UdpPacketCodec::encode(UdpPacket& packet) {
+QByteArray UdpPacketCodec::encode(const UdpPacket& packet) {
     QByteArray bytes;
     QDataStream stream(&bytes, QIODevice::WriteOnly);
     stream.setByteOrder(QDataStream::BigEndian);
 
     stream << packet.magic;
     stream << packet.version;
-    stream << packet.channel;
-    stream << packet.type;
+    stream << static_cast<quint16>(packet.channel);
+    stream << static_cast<quint16>(packet.type);
     stream << packet.frameSeq;
     stream << packet.fragmentSeq;
     stream << packet.fragmentCount;
@@ -22,6 +22,10 @@ QByteArray UdpPacketCodec::encode(UdpPacket& packet) {
 }
 
 bool UdpPacketCodec::decode(const QByteArray& bytes, UdpPacket& packet) {
+    if (bytes.size() < UdpPacket::FixedHeaderSize) {
+        return false;
+    }
+
     QDataStream stream(bytes);
     stream.setByteOrder(QDataStream::BigEndian);
 
@@ -32,7 +36,6 @@ bool UdpPacketCodec::decode(const QByteArray& bytes, UdpPacket& packet) {
     quint32 frameSeq = 0;
     quint16 fragmentSeq = 0;
     quint16 fragmentCount = 0;
-    QByteArray payload;
 
     stream >> magic
            >> version
@@ -40,10 +43,13 @@ bool UdpPacketCodec::decode(const QByteArray& bytes, UdpPacket& packet) {
            >> type
            >> frameSeq
            >> fragmentSeq
-           >> fragmentCount
-           >> payload;
+           >> fragmentCount;
 
     if (stream.status() != QDataStream::Ok) {
+        return false;
+    }
+
+    if (magic != UdpPacket::Magic || version != UdpPacket::Version) {
         return false;
     }
 
@@ -54,7 +60,6 @@ bool UdpPacketCodec::decode(const QByteArray& bytes, UdpPacket& packet) {
     packet.frameSeq = frameSeq;
     packet.fragmentSeq = fragmentSeq;
     packet.fragmentCount = fragmentCount;
-    packet.payload = payload;
-
+    packet.payload = bytes.mid(UdpPacket::FixedHeaderSize);
     return true;
 }

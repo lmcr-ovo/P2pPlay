@@ -12,7 +12,7 @@ void UdpFrameReassembler::pushPacket(const UdpPacket &packet) {
         return;
     }
 
-    if (packet.fragmentSeq > packet.fragmentCount) {
+    if (packet.fragmentSeq >= packet.fragmentCount) {
         return;
     }
 

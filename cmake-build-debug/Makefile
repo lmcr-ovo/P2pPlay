@@ -110,246 +110,108 @@ depend:
 .PHONY : depend
 
 #=============================================================================
-# Target rules for targets named P2Pplay
+# Target rules for targets named Common
 
 # Build rule for target.
-P2Pplay: cmake_check_build_system
-	$(MAKE) -f CMakeFiles\Makefile2 P2Pplay
-.PHONY : P2Pplay
+Common: cmake_check_build_system
+	$(MAKE) -f CMakeFiles\Makefile2 Common
+.PHONY : Common
 
 # fast build rule for target.
-P2Pplay/fast:
-	$(MAKE) -f CMakeFiles\P2Pplay.dir\build.make CMakeFiles/P2Pplay.dir/build
-.PHONY : P2Pplay/fast
+Common/fast:
+	$(MAKE) -f Common\CMakeFiles\Common.dir\build.make Common/CMakeFiles/Common.dir/build
+.PHONY : Common/fast
 
 #=============================================================================
-# Target rules for targets named P2Pplay_autogen
+# Target rules for targets named Common_autogen
 
 # Build rule for target.
-P2Pplay_autogen: cmake_check_build_system
-	$(MAKE) -f CMakeFiles\Makefile2 P2Pplay_autogen
-.PHONY : P2Pplay_autogen
+Common_autogen: cmake_check_build_system
+	$(MAKE) -f CMakeFiles\Makefile2 Common_autogen
+.PHONY : Common_autogen
 
 # fast build rule for target.
-P2Pplay_autogen/fast:
-	$(MAKE) -f CMakeFiles\P2Pplay_autogen.dir\build.make CMakeFiles/P2Pplay_autogen.dir/build
-.PHONY : P2Pplay_autogen/fast
-
-Common/SignalingCodec.obj: Common/SignalingCodec.cpp.obj
-
-.PHONY : Common/SignalingCodec.obj
-
-# target to build an object file
-Common/SignalingCodec.cpp.obj:
-	$(MAKE) -f CMakeFiles\P2Pplay.dir\build.make CMakeFiles/P2Pplay.dir/Common/SignalingCodec.cpp.obj
-.PHONY : Common/SignalingCodec.cpp.obj
-
-Common/SignalingCodec.i: Common/SignalingCodec.cpp.i
-
-.PHONY : Common/SignalingCodec.i
-
-# target to preprocess a source file
-Common/SignalingCodec.cpp.i:
-	$(MAKE) -f CMakeFiles\P2Pplay.dir\build.make CMakeFiles/P2Pplay.dir/Common/SignalingCodec.cpp.i
-.PHONY : Common/SignalingCodec.cpp.i
-
-Common/SignalingCodec.s: Common/SignalingCodec.cpp.s
-
-.PHONY : Common/SignalingCodec.s
-
-# target to generate assembly for a file
-Common/SignalingCodec.cpp.s:
-	$(MAKE) -f CMakeFiles\P2Pplay.dir\build.make CMakeFiles/P2Pplay.dir/Common/SignalingCodec.cpp.s
-.PHONY : Common/SignalingCodec.cpp.s
-
-Common/SignalingConnection.obj: Common/SignalingConnection.cpp.obj
-
-.PHONY : Common/SignalingConnection.obj
-
-# target to build an object file
-Common/SignalingConnection.cpp.obj:
-	$(MAKE) -f CMakeFiles\P2Pplay.dir\build.make CMakeFiles/P2Pplay.dir/Common/SignalingConnection.cpp.obj
-.PHONY : Common/SignalingConnection.cpp.obj
-
-Common/SignalingConnection.i: Common/SignalingConnection.cpp.i
-
-.PHONY : Common/SignalingConnection.i
-
-# target to preprocess a source file
-Common/SignalingConnection.cpp.i:
-	$(MAKE) -f CMakeFiles\P2Pplay.dir\build.make CMakeFiles/P2Pplay.dir/Common/SignalingConnection.cpp.i
-.PHONY : Common/SignalingConnection.cpp.i
-
-Common/SignalingConnection.s: Common/SignalingConnection.cpp.s
-
-.PHONY : Common/SignalingConnection.s
-
-# target to generate assembly for a file
-Common/SignalingConnection.cpp.s:
-	$(MAKE) -f CMakeFiles\P2Pplay.dir\build.make CMakeFiles/P2Pplay.dir/Common/SignalingConnection.cpp.s
-.PHONY : Common/SignalingConnection.cpp.s
-
-Common/TcpFrameCodec.obj: Common/TcpFrameCodec.cpp.obj
-
-.PHONY : Common/TcpFrameCodec.obj
-
-# target to build an object file
-Common/TcpFrameCodec.cpp.obj:
-	$(MAKE) -f CMakeFiles\P2Pplay.dir\build.make CMakeFiles/P2Pplay.dir/Common/TcpFrameCodec.cpp.obj
-.PHONY : Common/TcpFrameCodec.cpp.obj
-
-Common/TcpFrameCodec.i: Common/TcpFrameCodec.cpp.i
-
-.PHONY : Common/TcpFrameCodec.i
-
-# target to preprocess a source file
-Common/TcpFrameCodec.cpp.i:
-	$(MAKE) -f CMakeFiles\P2Pplay.dir\build.make CMakeFiles/P2Pplay.dir/Common/TcpFrameCodec.cpp.i
-.PHONY : Common/TcpFrameCodec.cpp.i
-
-Common/TcpFrameCodec.s: Common/TcpFrameCodec.cpp.s
-
-.PHONY : Common/TcpFrameCodec.s
-
-# target to generate assembly for a file
-Common/TcpFrameCodec.cpp.s:
-	$(MAKE) -f CMakeFiles\P2Pplay.dir\build.make CMakeFiles/P2Pplay.dir/Common/TcpFrameCodec.cpp.s
-.PHONY : Common/TcpFrameCodec.cpp.s
-
-P2Pplay_autogen/mocs_compilation.obj: P2Pplay_autogen/mocs_compilation.cpp.obj
-
-.PHONY : P2Pplay_autogen/mocs_compilation.obj
-
-# target to build an object file
-P2Pplay_autogen/mocs_compilation.cpp.obj:
-	$(MAKE) -f CMakeFiles\P2Pplay.dir\build.make CMakeFiles/P2Pplay.dir/P2Pplay_autogen/mocs_compilation.cpp.obj
-.PHONY : P2Pplay_autogen/mocs_compilation.cpp.obj
-
-P2Pplay_autogen/mocs_compilation.i: P2Pplay_autogen/mocs_compilation.cpp.i
-
-.PHONY : P2Pplay_autogen/mocs_compilation.i
-
-# target to preprocess a source file
-P2Pplay_autogen/mocs_compilation.cpp.i:
-	$(MAKE) -f CMakeFiles\P2Pplay.dir\build.make CMakeFiles/P2Pplay.dir/P2Pplay_autogen/mocs_compilation.cpp.i
-.PHONY : P2Pplay_autogen/mocs_compilation.cpp.i
-
-P2Pplay_autogen/mocs_compilation.s: P2Pplay_autogen/mocs_compilation.cpp.s
-
-.PHONY : P2Pplay_autogen/mocs_compilation.s
-
-# target to generate assembly for a file
-P2Pplay_autogen/mocs_compilation.cpp.s:
-	$(MAKE) -f CMakeFiles\P2Pplay.dir\build.make CMakeFiles/P2Pplay.dir/P2Pplay_autogen/mocs_compilation.cpp.s
-.PHONY : P2Pplay_autogen/mocs_compilation.cpp.s
-
-Udp/P2pUdpTransport.obj: Udp/P2pUdpTransport.cpp.obj
-
-.PHONY : Udp/P2pUdpTransport.obj
-
-# target to build an object file
-Udp/P2pUdpTransport.cpp.obj:
-	$(MAKE) -f CMakeFiles\P2Pplay.dir\build.make CMakeFiles/P2Pplay.dir/Udp/P2pUdpTransport.cpp.obj
-.PHONY : Udp/P2pUdpTransport.cpp.obj
-
-Udp/P2pUdpTransport.i: Udp/P2pUdpTransport.cpp.i
-
-.PHONY : Udp/P2pUdpTransport.i
-
-# target to preprocess a source file
-Udp/P2pUdpTransport.cpp.i:
-	$(MAKE) -f CMakeFiles\P2Pplay.dir\build.make CMakeFiles/P2Pplay.dir/Udp/P2pUdpTransport.cpp.i
-.PHONY : Udp/P2pUdpTransport.cpp.i
-
-Udp/P2pUdpTransport.s: Udp/P2pUdpTransport.cpp.s
-
-.PHONY : Udp/P2pUdpTransport.s
-
-# target to generate assembly for a file
-Udp/P2pUdpTransport.cpp.s:
-	$(MAKE) -f CMakeFiles\P2Pplay.dir\build.make CMakeFiles/P2Pplay.dir/Udp/P2pUdpTransport.cpp.s
-.PHONY : Udp/P2pUdpTransport.cpp.s
-
-Udp/UdpFragmenter.obj: Udp/UdpFragmenter.cpp.obj
-
-.PHONY : Udp/UdpFragmenter.obj
-
-# target to build an object file
-Udp/UdpFragmenter.cpp.obj:
-	$(MAKE) -f CMakeFiles\P2Pplay.dir\build.make CMakeFiles/P2Pplay.dir/Udp/UdpFragmenter.cpp.obj
-.PHONY : Udp/UdpFragmenter.cpp.obj
-
-Udp/UdpFragmenter.i: Udp/UdpFragmenter.cpp.i
-
-.PHONY : Udp/UdpFragmenter.i
-
-# target to preprocess a source file
-Udp/UdpFragmenter.cpp.i:
-	$(MAKE) -f CMakeFiles\P2Pplay.dir\build.make CMakeFiles/P2Pplay.dir/Udp/UdpFragmenter.cpp.i
-.PHONY : Udp/UdpFragmenter.cpp.i
-
-Udp/UdpFragmenter.s: Udp/UdpFragmenter.cpp.s
-
-.PHONY : Udp/UdpFragmenter.s
-
-# target to generate assembly for a file
-Udp/UdpFragmenter.cpp.s:
-	$(MAKE) -f CMakeFiles\P2Pplay.dir\build.make CMakeFiles/P2Pplay.dir/Udp/UdpFragmenter.cpp.s
-.PHONY : Udp/UdpFragmenter.cpp.s
-
-Udp/UdpFrameReassembler.obj: Udp/UdpFrameReassembler.cpp.obj
-
-.PHONY : Udp/UdpFrameReassembler.obj
-
-# target to build an object file
-Udp/UdpFrameReassembler.cpp.obj:
-	$(MAKE) -f CMakeFiles\P2Pplay.dir\build.make CMakeFiles/P2Pplay.dir/Udp/UdpFrameReassembler.cpp.obj
-.PHONY : Udp/UdpFrameReassembler.cpp.obj
-
-Udp/UdpFrameReassembler.i: Udp/UdpFrameReassembler.cpp.i
-
-.PHONY : Udp/UdpFrameReassembler.i
-
-# target to preprocess a source file
-Udp/UdpFrameReassembler.cpp.i:
-	$(MAKE) -f CMakeFiles\P2Pplay.dir\build.make CMakeFiles/P2Pplay.dir/Udp/UdpFrameReassembler.cpp.i
-.PHONY : Udp/UdpFrameReassembler.cpp.i
-
-Udp/UdpFrameReassembler.s: Udp/UdpFrameReassembler.cpp.s
-
-.PHONY : Udp/UdpFrameReassembler.s
-
-# target to generate assembly for a file
-Udp/UdpFrameReassembler.cpp.s:
-	$(MAKE) -f CMakeFiles\P2Pplay.dir\build.make CMakeFiles/P2Pplay.dir/Udp/UdpFrameReassembler.cpp.s
-.PHONY : Udp/UdpFrameReassembler.cpp.s
-
-Udp/UdpPacketCodec.obj: Udp/UdpPacketCodec.cpp.obj
-
-.PHONY : Udp/UdpPacketCodec.obj
-
-# target to build an object file
-Udp/UdpPacketCodec.cpp.obj:
-	$(MAKE) -f CMakeFiles\P2Pplay.dir\build.make CMakeFiles/P2Pplay.dir/Udp/UdpPacketCodec.cpp.obj
-.PHONY : Udp/UdpPacketCodec.cpp.obj
-
-Udp/UdpPacketCodec.i: Udp/UdpPacketCodec.cpp.i
-
-.PHONY : Udp/UdpPacketCodec.i
-
-# target to preprocess a source file
-Udp/UdpPacketCodec.cpp.i:
-	$(MAKE) -f CMakeFiles\P2Pplay.dir\build.make CMakeFiles/P2Pplay.dir/Udp/UdpPacketCodec.cpp.i
-.PHONY : Udp/UdpPacketCodec.cpp.i
-
-Udp/UdpPacketCodec.s: Udp/UdpPacketCodec.cpp.s
-
-.PHONY : Udp/UdpPacketCodec.s
-
-# target to generate assembly for a file
-Udp/UdpPacketCodec.cpp.s:
-	$(MAKE) -f CMakeFiles\P2Pplay.dir\build.make CMakeFiles/P2Pplay.dir/Udp/UdpPacketCodec.cpp.s
-.PHONY : Udp/UdpPacketCodec.cpp.s
+Common_autogen/fast:
+	$(MAKE) -f Common\CMakeFiles\Common_autogen.dir\build.make Common/CMakeFiles/Common_autogen.dir/build
+.PHONY : Common_autogen/fast
+
+#=============================================================================
+# Target rules for targets named Udp
+
+# Build rule for target.
+Udp: cmake_check_build_system
+	$(MAKE) -f CMakeFiles\Makefile2 Udp
+.PHONY : Udp
+
+# fast build rule for target.
+Udp/fast:
+	$(MAKE) -f Udp\CMakeFiles\Udp.dir\build.make Udp/CMakeFiles/Udp.dir/build
+.PHONY : Udp/fast
+
+#=============================================================================
+# Target rules for targets named Udp_autogen
+
+# Build rule for target.
+Udp_autogen: cmake_check_build_system
+	$(MAKE) -f CMakeFiles\Makefile2 Udp_autogen
+.PHONY : Udp_autogen
+
+# fast build rule for target.
+Udp_autogen/fast:
+	$(MAKE) -f Udp\CMakeFiles\Udp_autogen.dir\build.make Udp/CMakeFiles/Udp_autogen.dir/build
+.PHONY : Udp_autogen/fast
+
+#=============================================================================
+# Target rules for targets named testUdp
+
+# Build rule for target.
+testUdp: cmake_check_build_system
+	$(MAKE) -f CMakeFiles\Makefile2 testUdp
+.PHONY : testUdp
+
+# fast build rule for target.
+testUdp/fast:
+	$(MAKE) -f Udp\test\CMakeFiles\testUdp.dir\build.make Udp/test/CMakeFiles/testUdp.dir/build
+.PHONY : testUdp/fast
+
+#=============================================================================
+# Target rules for targets named testUdp1
+
+# Build rule for target.
+testUdp1: cmake_check_build_system
+	$(MAKE) -f CMakeFiles\Makefile2 testUdp1
+.PHONY : testUdp1
+
+# fast build rule for target.
+testUdp1/fast:
+	$(MAKE) -f Udp\test\CMakeFiles\testUdp1.dir\build.make Udp/test/CMakeFiles/testUdp1.dir/build
+.PHONY : testUdp1/fast
+
+#=============================================================================
+# Target rules for targets named testUdp_autogen
+
+# Build rule for target.
+testUdp_autogen: cmake_check_build_system
+	$(MAKE) -f CMakeFiles\Makefile2 testUdp_autogen
+.PHONY : testUdp_autogen
+
+# fast build rule for target.
+testUdp_autogen/fast:
+	$(MAKE) -f Udp\test\CMakeFiles\testUdp_autogen.dir\build.make Udp/test/CMakeFiles/testUdp_autogen.dir/build
+.PHONY : testUdp_autogen/fast
+
+#=============================================================================
+# Target rules for targets named testUdp1_autogen
+
+# Build rule for target.
+testUdp1_autogen: cmake_check_build_system
+	$(MAKE) -f CMakeFiles\Makefile2 testUdp1_autogen
+.PHONY : testUdp1_autogen
+
+# fast build rule for target.
+testUdp1_autogen/fast:
+	$(MAKE) -f Udp\test\CMakeFiles\testUdp1_autogen.dir\build.make Udp/test/CMakeFiles/testUdp1_autogen.dir/build
+.PHONY : testUdp1_autogen/fast
 
 # Help Target
 help:
@@ -357,34 +219,16 @@ help:
 	@echo ... all (the default if no target is provided)
 	@echo ... clean
 	@echo ... depend
-	@echo ... P2Pplay
 	@echo ... edit_cache
 	@echo ... rebuild_cache
-	@echo ... P2Pplay_autogen
-	@echo ... Common/SignalingCodec.obj
-	@echo ... Common/SignalingCodec.i
-	@echo ... Common/SignalingCodec.s
-	@echo ... Common/SignalingConnection.obj
-	@echo ... Common/SignalingConnection.i
-	@echo ... Common/SignalingConnection.s
-	@echo ... Common/TcpFrameCodec.obj
-	@echo ... Common/TcpFrameCodec.i
-	@echo ... Common/TcpFrameCodec.s
-	@echo ... P2Pplay_autogen/mocs_compilation.obj
-	@echo ... P2Pplay_autogen/mocs_compilation.i
-	@echo ... P2Pplay_autogen/mocs_compilation.s
-	@echo ... Udp/P2pUdpTransport.obj
-	@echo ... Udp/P2pUdpTransport.i
-	@echo ... Udp/P2pUdpTransport.s
-	@echo ... Udp/UdpFragmenter.obj
-	@echo ... Udp/UdpFragmenter.i
-	@echo ... Udp/UdpFragmenter.s
-	@echo ... Udp/UdpFrameReassembler.obj
-	@echo ... Udp/UdpFrameReassembler.i
-	@echo ... Udp/UdpFrameReassembler.s
-	@echo ... Udp/UdpPacketCodec.obj
-	@echo ... Udp/UdpPacketCodec.i
-	@echo ... Udp/UdpPacketCodec.s
+	@echo ... Common
+	@echo ... Common_autogen
+	@echo ... Udp
+	@echo ... Udp_autogen
+	@echo ... testUdp
+	@echo ... testUdp1
+	@echo ... testUdp_autogen
+	@echo ... testUdp1_autogen
 .PHONY : help
 
 

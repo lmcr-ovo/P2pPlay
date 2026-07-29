@@ -8,7 +8,7 @@
 #include "UdpFragmenter.h"
 
 P2pUdpTransport::P2pUdpTransport(QUdpSocket* sock, QObject* parent)
-    : QObject(parent), sock_(sock), reassembler_(this) {
+    : QObject(parent), sock_(sock), reassembler_() {
     if (sock == nullptr) {
         emit errorOccurred("null udp socket");
         return;
@@ -27,6 +27,11 @@ P2pUdpTransport::P2pUdpTransport(QUdpSocket* sock, QObject* parent)
     });
 }
 
+void P2pUdpTransport::setPeerEndpoint(const QHostAddress& address, quint16 port) {
+    peerAddress_ = address;
+    peerPort_ = port;
+}
+
 bool P2pUdpTransport::sendFrame(UdpChannelType channel, UdpFrameType type, const QByteArray& payload) {
     if (sock_ == nullptr) {
         emit errorOccurred("udp socket is null");
@@ -42,14 +47,22 @@ bool P2pUdpTransport::sendFrame(UdpChannelType channel, UdpFrameType type, const
     UdpFrame frame;
     frame.channelType = channel;
     frame.frameType = type;
+    frame.payload = payload;
+
+    int sentCount = 0;
+
     QList<UdpPacket> packets = UdpFragmenter::fragment(frame, frameSeq);
     for (UdpPacket& packet : packets) {
         QByteArray bytes = UdpPacketCodec::encode(packet);
-        quint16 written = sock_->writeDatagram(bytes, peerAddress_, peerPort_);
+        qint64 written = sock_->writeDatagram(bytes, peerAddress_, peerPort_);
 
         if (written != bytes.size()) {
             emit errorOccurred("udp write datagram failed");
             return false;
+        }
+        ++sentCount;
+        if (sentCount % 24 == 0) {
+            QThread::usleep(500);
         }
     }
     return true;
@@ -62,6 +75,12 @@ void P2pUdpTransport::onReadyRead() {
         const QByteArray bytes = datagram.data();
         const QHostAddress senderAddress = datagram.senderAddress();
         const quint16 senderPort = datagram.senderPort();
+
+        if (!peerAddress_.isNull() && peerPort_ != 0) {
+            if (senderAddress != peerAddress_ || senderPort != peerPort_) {
+                continue;
+            }
+        }
 
         UdpPacket packet;
         if (!UdpPacketCodec::decode(bytes, packet)) {

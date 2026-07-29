@@ -10,7 +10,7 @@
 
 class UdpPacketCodec {
 public:
-    static QByteArray encode(UdpPacket& packet);
+    static QByteArray encode(const UdpPacket& packet);
     static bool decode(const QByteArray& bytes, UdpPacket& packet);
 
 private:

@@ -13,7 +13,7 @@ class UdpFrameReassembler : public QObject {
     Q_OBJECT
 
 public:
-    explicit UdpFrameReassembler(QObject* parent);
+    explicit UdpFrameReassembler(QObject* parent = nullptr);
     void pushPacket(const UdpPacket& packet);
 
 signals:

@@ -39,10 +39,7 @@ struct UdpPacket {
             sizeof(quint16) + // fragmentSeq
             sizeof(quint16); // fragmentCount
 
-    // Codec 使用 QDataStream << QByteArray，会额外写入 QByteArray 长度
-    static constexpr int PayloadLengthFieldSize = sizeof(quint32);
-    static constexpr int EncodedHeaderSize = FixedHeaderSize + PayloadLengthFieldSize;
-    static constexpr int MaxPayloadSize = MaxDatagramSize - EncodedHeaderSize;
+    static constexpr int MaxPayloadSize = MaxDatagramSize - FixedHeaderSize;
 
     quint32 magic = Magic;
     quint16 version = Version;

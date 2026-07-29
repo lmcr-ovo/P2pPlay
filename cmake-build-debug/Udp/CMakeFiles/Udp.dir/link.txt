@@ -1,0 +1,2 @@
+D:\Qt5\Tools\mingw730_64\bin\ar.exe qc libUdp.a  CMakeFiles/Udp.dir/Udp_autogen/mocs_compilation.cpp.obj CMakeFiles/Udp.dir/P2pUdpTransport.cpp.obj CMakeFiles/Udp.dir/UdpFrameReassembler.cpp.obj CMakeFiles/Udp.dir/UdpPacketCodec.cpp.obj CMakeFiles/Udp.dir/UdpFragmenter.cpp.obj
+D:\Qt5\Tools\mingw730_64\bin\ranlib.exe libUdp.a
