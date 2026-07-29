@@ -8,6 +8,7 @@
 #include <QObject>
 #include <QUdpSocket>
 #include "UdpFrameReassembler.h"
+#include "UdpPacketQueue.h"
 
 class P2pUdpTransport : public QObject {
     Q_OBJECT
@@ -16,11 +17,15 @@ public:
     explicit P2pUdpTransport(QUdpSocket* sock, QObject* parent);
     bool sendFrame(UdpChannelType channel, UdpFrameType type, const QByteArray& payload);
     void setPeerEndpoint(const QHostAddress& address, quint16 port);
+    void setTick(int packetPerTick, int flushIntervalMs);
 
 signals:
     void errorOccurred(const QString& reason);
     void frameReady(const UdpFrame& frame);
     void frameDropped(quint32 frameSeq);
+    void packetsReadyToSend(QQueue<UdpPacket> packets,
+            const QHostAddress& peerAddress,
+            quint16 peerPort);
 
 private slots:
     void onReadyRead();
@@ -30,7 +35,8 @@ private:
     UdpFrameReassembler reassembler_;
     QHostAddress peerAddress_;
     quint16 peerPort_ = 0;
-    quint32 nextFrameSeq = 0;
+    quint32 nextFrameSeq_ = 0;
+    UdpPacketQueue packetQueue_;
 };
 
 

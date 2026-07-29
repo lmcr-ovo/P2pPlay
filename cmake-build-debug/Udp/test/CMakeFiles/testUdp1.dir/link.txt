@@ -1,3 +1,0 @@
-"D:\CLion 2019.3.6\bin\cmake\win\bin\cmake.exe" -E remove -f CMakeFiles\testUdp1.dir/objects.a
-D:\Qt5\Tools\mingw730_64\bin\ar.exe cr CMakeFiles\testUdp1.dir/objects.a @CMakeFiles\testUdp1.dir\objects1.rsp
-D:\Qt5\Tools\mingw730_64\bin\g++.exe -g   -Wl,--whole-archive CMakeFiles\testUdp1.dir/objects.a -Wl,--no-whole-archive  -o testUdp1.exe -Wl,--out-implib,libtestUdp1.dll.a -Wl,--major-image-version,0,--minor-image-version,0 @CMakeFiles\testUdp1.dir\linklibs.rsp

@@ -13,4 +13,6 @@ cmake
 frameReady 跨进程连接，改为传值
 const
 constexpr
-threa
+thread
+gitnore
+生命周期

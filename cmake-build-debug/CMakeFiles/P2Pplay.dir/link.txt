@@ -1,3 +1,0 @@
-"D:\CLion 2019.3.6\bin\cmake\win\bin\cmake.exe" -E remove -f CMakeFiles\P2Pplay.dir/objects.a
-D:\Qt5\Tools\mingw730_64\bin\ar.exe cr CMakeFiles\P2Pplay.dir/objects.a @CMakeFiles\P2Pplay.dir\objects1.rsp
-D:\Qt5\Tools\mingw730_64\bin\g++.exe -g   -Wl,--whole-archive CMakeFiles\P2Pplay.dir/objects.a -Wl,--no-whole-archive  -o P2Pplay.exe -Wl,--out-implib,libP2Pplay.dll.a -Wl,--major-image-version,0,--minor-image-version,0 @CMakeFiles\P2Pplay.dir\linklibs.rsp

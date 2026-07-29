@@ -1,2 +1,0 @@
-D:\Qt5\Tools\mingw730_64\bin\ar.exe qc libCommon.a  CMakeFiles/Common.dir/Common_autogen/mocs_compilation.cpp.obj CMakeFiles/Common.dir/TcpFrameCodec.cpp.obj CMakeFiles/Common.dir/SignalingCodec.cpp.obj CMakeFiles/Common.dir/SignalingConnection.cpp.obj
-D:\Qt5\Tools\mingw730_64\bin\ranlib.exe libCommon.a

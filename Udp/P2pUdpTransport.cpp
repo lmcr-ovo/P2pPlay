@@ -8,7 +8,8 @@
 #include "UdpFragmenter.h"
 
 P2pUdpTransport::P2pUdpTransport(QUdpSocket* sock, QObject* parent)
-    : QObject(parent), sock_(sock), reassembler_() {
+    : QObject(parent), sock_(sock), reassembler_(),
+    packetQueue_(this, sock) {
     if (sock == nullptr) {
         emit errorOccurred("null udp socket");
         return;
@@ -25,11 +26,17 @@ P2pUdpTransport::P2pUdpTransport(QUdpSocket* sock, QObject* parent)
             this, [this](QAbstractSocket::SocketError err) {
         emit errorOccurred(sock_->errorString());
     });
+    connect(this, &P2pUdpTransport::packetsReadyToSend,
+            &packetQueue_, &UdpPacketQueue::onPacketsReadyToSend);
 }
 
 void P2pUdpTransport::setPeerEndpoint(const QHostAddress& address, quint16 port) {
     peerAddress_ = address;
     peerPort_ = port;
+}
+
+void P2pUdpTransport::setTick(int packetPerTick, int flushIntervalMs) {
+    packetQueue_.setTick(packetPerTick, flushIntervalMs);
 }
 
 bool P2pUdpTransport::sendFrame(UdpChannelType channel, UdpFrameType type, const QByteArray& payload) {
@@ -43,28 +50,14 @@ bool P2pUdpTransport::sendFrame(UdpChannelType channel, UdpFrameType type, const
         return false;
     }
 
-    quint32 frameSeq = nextFrameSeq++;
+    quint32 frameSeq = nextFrameSeq_++;
     UdpFrame frame;
     frame.channelType = channel;
     frame.frameType = type;
     frame.payload = payload;
 
-    int sentCount = 0;
-
-    QList<UdpPacket> packets = UdpFragmenter::fragment(frame, frameSeq);
-    for (UdpPacket& packet : packets) {
-        QByteArray bytes = UdpPacketCodec::encode(packet);
-        qint64 written = sock_->writeDatagram(bytes, peerAddress_, peerPort_);
-
-        if (written != bytes.size()) {
-            emit errorOccurred("udp write datagram failed");
-            return false;
-        }
-        ++sentCount;
-        if (sentCount % 24 == 0) {
-            QThread::usleep(500);
-        }
-    }
+    QQueue<UdpPacket> packets = UdpFragmenter::fragment(frame, frameSeq);
+    emit packetsReadyToSend(packets, peerAddress_, peerPort_);
     return true;
 }
 

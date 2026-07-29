@@ -3,7 +3,8 @@ add_library(Udp
         P2pUdpTransport.h P2pUdpTransport.cpp
         UdpFrameReassembler.h UdpFrameReassembler.cpp
         UdpPacketCodec.h UdpPacketCodec.cpp
-        UdpFragmenter.h UdpFragmenter.cpp)
+        UdpFragmenter.h UdpFragmenter.cpp
+        UdpPacketQueue.h UdpPacketQueue.cpp)
 
 target_include_directories(Udp PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR})

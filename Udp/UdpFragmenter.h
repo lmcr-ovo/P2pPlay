@@ -5,12 +5,12 @@
 #ifndef P2PPLAY_UDPFRAGMENTER_H
 #define P2PPLAY_UDPFRAGMENTER_H
 
-#include <QList>
+#include <QQueue>
 #include "UdpPacket.h"
 
 class UdpFragmenter {
 public:
-    static QList<UdpPacket> fragment(const UdpFrame& frame, quint32 frameSeq);
+    static QQueue<UdpPacket> fragment(const UdpFrame& frame, quint32 frameSeq);
 };
 
 

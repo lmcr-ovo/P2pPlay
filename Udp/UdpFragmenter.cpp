@@ -4,8 +4,8 @@
 #include <limits>
 #include "UdpFragmenter.h"
 
-QList<UdpPacket> UdpFragmenter::fragment(const UdpFrame& frame, quint32 frameSeq) {
-    QList<UdpPacket> packets;
+QQueue<UdpPacket> UdpFragmenter::fragment(const UdpFrame& frame, quint32 frameSeq) {
+    QQueue<UdpPacket> packets;
 
     int maxPayloadSizeInt = UdpPacket::MaxPayloadSize;
     int totalSize = frame.payload.size();
@@ -31,7 +31,7 @@ QList<UdpPacket> UdpFragmenter::fragment(const UdpFrame& frame, quint32 frameSeq
         packet.fragmentCount = static_cast<quint16 >(fragmentCount);
         packet.payload = size > 0 ? frame.payload.mid(offset, size) : QByteArray();
 
-        packets.append(packet);
+        packets.enqueue(packet);
     }
     return packets;
 }
