@@ -8,11 +8,14 @@
 #include "TcpFrameCodec.h"
 
 SignalingConnection::SignalingConnection(QTcpSocket* sock, QObject* parent)
-    : QObject(parent), sock_(sock){
+    : QObject(parent), sock_(sock) {
     if (sock_ == nullptr) {
         emit errorOccurred("null tcp socket");
         return;
     }
+
+    sock_->setParent(this);
+
     connect(sock_, &QTcpSocket::readyRead, this, &SignalingConnection::onReadyRead);
     connect(sock_, &QTcpSocket::disconnected, this, &SignalingConnection::disconnected);
     connect(sock_,

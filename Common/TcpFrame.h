@@ -5,15 +5,19 @@
 
 enum class SignalingType : quint16 {
     Unknown = 0,
-    CreateRoom = 1,
-    RoomCreated = 2,
-    JoinRoomResult = 3,
-    JoinResult = 4,
-    PeerJoined = 5,
-    UdpEndpointReady = 6,
-    PeerEndpoint = 7,
-    P2pResultReport = 8,
-    Error = 9
+    Register = 1,
+    RegisterResult = 11,
+    CreateRoom = 2,
+    RoomCreated = 3,
+    JoinRoom = 4,
+    PeerJoined = 6,
+    UdpEndpointReady = 7,
+    PeerEndpoint = 8,
+    P2pResultReport = 9,
+    Log = 12,
+    ProbeRequest = 13,
+    ProbePermitted = 14,
+    Error = 10
 };
 
 struct TcpFrame {
