@@ -11,6 +11,12 @@
 #include <QQueue>
 #include "UdpPacket.h"
 
+struct PendingUdpPacket {
+    UdpPacket packet;
+    QHostAddress address;
+    quint16 port = 0;
+};
+
 class UdpPacketQueue : public QObject {
     Q_OBJECT
 
@@ -28,9 +34,7 @@ private slots:
 private:
     QUdpSocket* sock_;
     QTimer timer_;
-    QQueue<UdpPacket> packets_;
-    QHostAddress peerAddress_;
-    quint16 peerPort_ = 0;
+    QQueue<PendingUdpPacket> packets_;
     int packetsPerTick_ = 32;
     int flushIntervalMs_ = 1;
 };

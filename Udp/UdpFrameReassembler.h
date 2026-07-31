@@ -7,14 +7,38 @@
 
 #include <QtCore>
 #include <QObject>
+#include <QHostAddress>
 #include "UdpPacket.h"
+
+struct FrameKey {
+    QHostAddress senderAddress;
+    quint16 senderPort = 0;
+    quint32 frameSeq = 0;
+
+    bool operator<(const FrameKey& other) const {
+        const QString selfAddress = senderAddress.toString();
+        const QString otherAddress = senderAddress.toString();
+
+        if (selfAddress != otherAddress) {
+            return selfAddress < otherAddress;
+        }
+
+        if (senderPort != other.senderPort) {
+            return senderPort < other.senderPort;
+        }
+
+        return frameSeq < other.frameSeq;
+    }
+};
 
 class UdpFrameReassembler : public QObject {
     Q_OBJECT
 
 public:
     explicit UdpFrameReassembler(QObject* parent = nullptr);
-    void pushPacket(const UdpPacket& packet);
+    void pushPacket(const UdpPacket& packet,
+            const QHostAddress& senderAddress,
+            quint16 senderPort);
 
 signals:
     void frameReady(const UdpFrame& frame);
@@ -24,19 +48,28 @@ private:
     struct FrameBuffer {
         UdpChannelType channelType = UdpChannelType::Unknown;
         UdpFrameType frameType = UdpFrameType::Unknown;
+
+        QHostAddress senderAddress;
+        quint16 senderPort = 0;
+
         quint16 fragmentCount = 0;
         QMap<quint16, QByteArray> fragments;
 
         bool isComplete() const {
-            return fragmentCount > 0 && fragmentCount == fragments.size();
+            //return fragmentCount > 0 && fragmentCount == fragments.size();
+            return fragmentCount > 0
+                   && fragments.size() == static_cast<int>(fragmentCount);
         }
     };
 
 private:
     void emitCompleteFrame(const FrameBuffer& buffer);
-    void dropFramesOlderThan(quint32 frameSeq);
+    void dropFramesOlderThan(const QHostAddress& senderAddress,
+            quint16 senderPort,
+            quint32 frameSeq);
+
 private:
-    QMap<quint32, FrameBuffer> pendingFrame_;
+    QMap<FrameKey, FrameBuffer> pendingFrame_;
 };
 
 

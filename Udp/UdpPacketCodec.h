@@ -12,9 +12,6 @@ class UdpPacketCodec {
 public:
     static QByteArray encode(const UdpPacket& packet);
     static bool decode(const QByteArray& bytes, UdpPacket& packet);
-
-private:
-    static const quint16 MTU = 1200;
 };
 
 

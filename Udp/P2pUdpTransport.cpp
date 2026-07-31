@@ -61,6 +61,66 @@ bool P2pUdpTransport::sendFrame(UdpChannelType channel, UdpFrameType type, const
     return true;
 }
 
+bool P2pUdpTransport::sendFrameTo(const QHostAddress& address,
+        quint16 port,
+        UdpChannelType channel,
+        UdpFrameType type,
+        const QByteArray& payload) {
+    if (sock_ == nullptr) {
+        emit errorOccurred("udp socket is null");
+        return false;
+    }
+
+    if (address.isNull() || port == 0) {
+        emit errorOccurred("invalid udp endpoint");
+        return false;
+    }
+
+    UdpFrame frame;
+    frame.channelType = channel;
+    frame.frameType = type;
+    frame.payload = payload;
+
+    const quint32 frameSeq = allocFrameSeq();
+    QQueue<UdpPacket> packets = UdpFragmenter::fragment(frame, frameSeq);
+
+    if (packets.isEmpty()) {
+        emit errorOccurred("udp fragment failed");
+        return false;
+    }
+
+    emit packetsReadyToSend(packets, address, port);
+    return true;
+}
+
+quint32 P2pUdpTransport::allocFrameSeq() {
+    return nextFrameSeq_++;
+}
+
+void P2pUdpTransport::clearPeerEndpoint() {
+    peerAddress_ = QHostAddress();
+    peerPort_ = 0;
+}
+
+void P2pUdpTransport::setPeerFilterEnabled(bool enabled) {
+    peerFilterEnabled_ = enabled;
+}
+
+bool P2pUdpTransport::shouldAcceptDatagram(
+        const QHostAddress& senderAddress,
+        quint16 senderPort) const {
+    if (!peerFilterEnabled_) {
+        return true;
+    }
+
+    if (peerAddress_.isNull() || peerPort_ == 0) {
+        return true;
+    }
+
+    return senderAddress == peerAddress_
+           && senderPort == peerPort_;
+}
+
 void P2pUdpTransport::onReadyRead() {
     while (sock_->hasPendingDatagrams()) {
         QNetworkDatagram datagram = sock_->receiveDatagram();
@@ -69,10 +129,8 @@ void P2pUdpTransport::onReadyRead() {
         const QHostAddress senderAddress = datagram.senderAddress();
         const quint16 senderPort = datagram.senderPort();
 
-        if (!peerAddress_.isNull() && peerPort_ != 0) {
-            if (senderAddress != peerAddress_ || senderPort != peerPort_) {
-                continue;
-            }
+        if (!shouldAcceptDatagram(senderAddress, senderPort)) {
+            continue;
         }
 
         UdpPacket packet;
@@ -81,6 +139,6 @@ void P2pUdpTransport::onReadyRead() {
             continue;
         }
 
-        reassembler_.pushPacket(packet);
+        reassembler_.pushPacket(packet, senderAddress, senderPort);
     }
 }

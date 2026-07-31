@@ -17,11 +17,14 @@ void UdpPacketQueue::setTick(int packetsPerTick, int flushIntervalMs) {
 
 void UdpPacketQueue::onPacketsReadyToSend(QQueue<UdpPacket> packets,
         const QHostAddress& peerAddress, quint16 PeerPort) {
-    peerAddress_ = peerAddress;
-    peerPort_ = PeerPort;
-    for (const UdpPacket& packet : packets) {
-        packets_.enqueue(packet);
+    while (!packets.isEmpty()) {
+        PendingUdpPacket pending;
+        pending.packet = packets.dequeue();
+        pending.address = peerAddress;
+        pending.port = PeerPort;
+        packets_.enqueue(pending);
     }
+
     if (!timer_.isActive()) {
         timer_.start(flushIntervalMs_);
     }
@@ -31,10 +34,11 @@ void UdpPacketQueue::sendPacketPerTick() {
     int sentCount = 0;
 
     while (!packets_.isEmpty() && sentCount < packetsPerTick_) {
-        const UdpPacket packet = packets_.dequeue();
-        const QByteArray bytes = UdpPacketCodec::encode(packet);
+        const PendingUdpPacket pending = packets_.dequeue();
+        const QByteArray bytes = UdpPacketCodec::encode(pending.packet);
 
-        const qint64 written = sock_->writeDatagram(bytes, peerAddress_, peerPort_);
+        const qint64 written = sock_->writeDatagram(
+                bytes, pending.address, pending.port);
 
         if (written != bytes.size()) {
             // 后面建议 emit writeFailed(sock_->errorString());

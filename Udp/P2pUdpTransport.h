@@ -19,6 +19,15 @@ public:
     void setPeerEndpoint(const QHostAddress& address, quint16 port);
     void setTick(int packetPerTick, int flushIntervalMs);
 
+    bool sendFrameTo(const QHostAddress& address,
+                     quint16 port,
+                     UdpChannelType channel,
+                     UdpFrameType type,
+                     const QByteArray& payload);
+
+    void clearPeerEndpoint();
+    void setPeerFilterEnabled(bool enabled);
+
 signals:
     void errorOccurred(const QString& reason);
     void frameReady(const UdpFrame& frame);
@@ -31,12 +40,19 @@ private slots:
     void onReadyRead();
 
 private:
+    bool shouldAcceptDatagram(const QHostAddress& senderAddress,
+                              quint16 senderPort) const;
+
+    quint32 allocFrameSeq();
+
+private:
     QUdpSocket* sock_;
     UdpFrameReassembler reassembler_;
     QHostAddress peerAddress_;
     quint16 peerPort_ = 0;
     quint32 nextFrameSeq_ = 0;
     UdpPacketQueue packetQueue_;
+    bool peerFilterEnabled_ = false;
 };
 
 

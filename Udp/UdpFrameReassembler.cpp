@@ -7,7 +7,9 @@
 UdpFrameReassembler::UdpFrameReassembler(QObject* parent)
     : QObject(parent) {}
 
-void UdpFrameReassembler::pushPacket(const UdpPacket &packet) {
+void UdpFrameReassembler::pushPacket(const UdpPacket& packet,
+        const QHostAddress& senderAddress,
+        quint16 senderPort) {
     if (packet.fragmentCount == 0) {
         return;
     }
@@ -16,14 +18,25 @@ void UdpFrameReassembler::pushPacket(const UdpPacket &packet) {
         return;
     }
 
-    FrameBuffer &buffer = pendingFrame_[packet.frameSeq];
+    FrameKey key;
+    key.senderAddress = senderAddress;
+    key.senderPort = senderPort;
+    key.frameSeq = packet.frameSeq;
+
+    FrameBuffer &buffer = pendingFrame_[key];
     if (buffer.fragments.isEmpty()) {
         buffer.channelType = packet.channel;
         buffer.frameType = packet.type;
+        buffer.senderAddress = senderAddress;
+        buffer.senderPort = senderPort;
         buffer.fragmentCount = packet.fragmentCount;
     }
 
-    if (buffer.fragmentCount != packet.fragmentCount) {
+    if (buffer.channelType != packet.channel
+        || buffer.frameType != packet.type
+        || buffer.fragmentCount != packet.fragmentCount
+        || buffer.senderAddress != senderAddress
+        || buffer.senderPort != senderPort) {
         return;
     }
 
@@ -37,8 +50,8 @@ void UdpFrameReassembler::pushPacket(const UdpPacket &packet) {
     }
 
     emitCompleteFrame(buffer);
-    pendingFrame_.remove(packet.frameSeq);
-    dropFramesOlderThan(packet.frameSeq);
+    pendingFrame_.remove(key);
+    dropFramesOlderThan(senderAddress, senderPort, packet.frameSeq);
 }
 
 void UdpFrameReassembler::emitCompleteFrame(const FrameBuffer& buffer) {
@@ -49,17 +62,30 @@ void UdpFrameReassembler::emitCompleteFrame(const FrameBuffer& buffer) {
     UdpFrame frame;
     frame.channelType = buffer.channelType;
     frame.frameType = buffer.frameType;
+    frame.senderAddress = buffer.senderAddress;
+    frame.senderPort = buffer.senderPort;
     frame.payload = payload;
 
     emit frameReady(frame);
 }
 
-void UdpFrameReassembler::dropFramesOlderThan(quint32 frameSeq) {
+void UdpFrameReassembler::dropFramesOlderThan(const QHostAddress& senderAddress,
+        quint16 senderPort,
+        quint32 frameSeq
+        ) {
     auto it = pendingFrame_.begin();
 
-    while (it != pendingFrame_.end() && it.key() < frameSeq) {
-        const quint32 droppedSeq = it.key();
-        it = pendingFrame_.erase(it);
-        emit frameDropped(droppedSeq);
+    while (it != pendingFrame_.end()) {
+        const FrameKey key = it.key();
+
+        if (key.senderAddress == senderAddress
+            && key.senderPort == senderPort
+            && key.frameSeq < frameSeq) {
+            const quint32 droppedSeq = key.frameSeq;
+            it = pendingFrame_.erase(it);
+            emit frameDropped(droppedSeq);
+            continue;
+        }
+        ++it;
     }
 }
