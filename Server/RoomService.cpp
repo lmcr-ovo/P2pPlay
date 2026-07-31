@@ -52,6 +52,7 @@ void RoomService::onCreateRoom(SignalingConnection* connection,
 
     const QString roomId = generateRoomId();
     Room room;
+    room.roomId = roomId;
     room.host.clientId = clientId;
     room.host.connection = connection;
 
@@ -153,6 +154,63 @@ void RoomService::onJoinRoom(SignalingConnection* connection,
 }
 
 void RoomService::onProbeRequest(SignalingConnection* connection,
-        const SignalingMessage& message) {
+                                 const SignalingMessage& message) {
+    if (connection == nullptr) {
+        return;
+    }
 
+    const QString clientId = clientIdByConnection_.value(connection);
+
+    if (clientId.isEmpty()) {
+        SignalingMessage error;
+        error.type = SignalingType::Error;
+        error.reason = "请先注册";
+        connection->sendMessage(error);
+        return;
+    }
+
+    const QString roomId = roomIdByClientId_.value(clientId);
+    if (roomId.isEmpty()) {
+        SignalingMessage error;
+        error.type = SignalingType::Error;
+        error.reason = "当前不在房间中";
+        connection->sendMessage(error);
+        return;
+    }
+
+    auto roomIt = roomsById_.find(roomId);
+    if (roomIt == roomsById_.end()) {
+        SignalingMessage error;
+        error.type = SignalingType::Error;
+        error.reason = "房间不存在";
+        connection->sendMessage(error);
+        return;
+    }
+
+    Room& room = roomIt.value();
+
+    if (room.host.connection != connection) {
+        SignalingMessage error;
+        error.type = SignalingType::Error;
+        error.reason = "只有主机可以发起连接请求";
+        connection->sendMessage(error);
+        return;
+    }
+
+    if (!room.client.isValid()) {
+        SignalingMessage error;
+        error.type = SignalingType::Error;
+        error.reason = "房间内没有客户";
+        connection->sendMessage(error);
+        return;
+    }
+
+    SignalingMessage permitted;
+    permitted.type = SignalingType::ProbePermitted;
+    permitted.roomId = room.roomId;
+    permitted.success = true;
+    permitted.reason = "允许开始 UDP 探测";
+
+    room.host.connection->sendMessage(permitted);
+    room.client.connection->sendMessage(permitted);
 }
