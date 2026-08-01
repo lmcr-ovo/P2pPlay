@@ -57,10 +57,10 @@ struct UdpPacket {
 struct UdpFrame {
     UdpChannelType channelType = UdpChannelType::Unknown;
     UdpFrameType frameType = UdpFrameType::Unknown;
-    QByteArray payload;
-
     QHostAddress senderAddress;
     quint16 senderPort = 0;
+
+    QByteArray payload;
 };
 
 #endif //P2PPLAY_UDPPACKET_H

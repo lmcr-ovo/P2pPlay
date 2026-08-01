@@ -8,7 +8,7 @@
 #include <QObject>
 #include "SignalingConnection.h"
 
-class SignalingDispatcher : QObject {
+class SignalingDispatcher : public QObject {
     Q_OBJECT
 
 signals:

@@ -10,7 +10,7 @@
 #include "SignalingDispatcher.h"
 #include "RoomService.h"
 
-class ServerApp : QObject {
+class ServerApp : public QObject {
     Q_OBJECT
 public:
     explicit ServerApp();
