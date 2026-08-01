@@ -32,6 +32,7 @@ struct Room {
     QString roomId;
     RoomPeer host;
     RoomPeer client;
+    bool peerEndpointNotified = false;
 
     bool hasClient() const {
         return client.isValid();

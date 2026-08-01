@@ -8,36 +8,30 @@
 #include <QObject>
 #include <QHostAddress>
 #include <QUdpSocket>
+#include "P2pUdpTransport.h"
 
 class NatProbeService : public QObject {
 Q_OBJECT
 
 public:
-    explicit NatProbeService(QObject* parent = nullptr);
-
+    NatProbeService(QObject* parent);
     bool start(const QHostAddress& address, quint16 port);
-    void stop();
 
 signals:
-    void probeReceived(const QString& roomId,
-                       const QString& clientId,
-                       const QHostAddress& address,
-                       quint16 port);
+    void probeReceived(
+            const QString& roomId,
+            const QString& clientId,
+            const QHostAddress& address,
+            quint16 port
+            );
 
     void errorOccurred(const QString& reason);
 
-private slots:
-    void onReadyRead();
+public slots:
+    void onFrameReady(const UdpFrame& frame);
 
 private:
-    bool decodeProbePayload(const QByteArray& payload,
-                            QString* roomId,
-                            QString* clientId) const;
-
-    QByteArray encodeProbeAckPayload(const QString& roomId,
-                                     const QString& clientId) const;
-
-private:
-    QUdpSocket socket_;
+    QUdpSocket sock_;
+    P2pUdpTransport transport_;
 };
 #endif //P2PPLAY_NATPROBESERVICE_H

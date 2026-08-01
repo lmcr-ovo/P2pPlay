@@ -17,7 +17,7 @@ struct FrameKey {
 
     bool operator<(const FrameKey& other) const {
         const QString selfAddress = senderAddress.toString();
-        const QString otherAddress = senderAddress.toString();
+        const QString otherAddress = other.senderAddress.toString();
 
         if (selfAddress != otherAddress) {
             return selfAddress < otherAddress;

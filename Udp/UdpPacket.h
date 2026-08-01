@@ -2,6 +2,7 @@
 #define P2PPLAY_UDPPACKET_H
 
 #include <QtCore>
+#include <QHostAddress>
 
 enum class UdpChannelType : quint16 {
     Unknown = 0,

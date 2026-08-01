@@ -5,7 +5,8 @@
 #include "ServerApp.h"
 
 ServerApp::ServerApp()
-    : roomService_(this) {
+    : roomService_(this),
+    natProbeService_(this) {
     connect(&signalingServer_, &SignalingServer::messageReceived,
             &signalingDispatcher_, &SignalingDispatcher::onMessageReceived);
     connect(&signalingDispatcher_, &SignalingDispatcher::registerRequest,
@@ -16,4 +17,6 @@ ServerApp::ServerApp()
             &roomService_, &RoomService::onJoinRoom);
     connect(&signalingDispatcher_, &SignalingDispatcher::probeRequest,
             &roomService_, &RoomService::onProbeRequest);
+    connect(&natProbeService_, &NatProbeService::probeReceived,
+            &roomService_, &RoomService::onUdpEndpointReady);
 }

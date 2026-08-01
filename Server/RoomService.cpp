@@ -214,3 +214,69 @@ void RoomService::onProbeRequest(SignalingConnection* connection,
     room.host.connection->sendMessage(permitted);
     room.client.connection->sendMessage(permitted);
 }
+
+void RoomService::onUdpEndpointReady(const QString& roomId,
+        const QString& clientId,
+        const QHostAddress& address,
+        quint16 port) {
+    auto it = roomsById_.find(roomId);
+    if (it == roomsById_.end()) {
+        return;
+    }
+
+    Room& room = it.value();
+    if (room.host.clientId == clientId) {
+        room.host.udpEndpoint.address = address;
+        room.host.udpEndpoint.port = port;
+    } else if (room.client.clientId == clientId) {
+        room.client.udpEndpoint.address = address;
+        room.client.udpEndpoint.port = port;
+    } else {
+        return;
+    }
+
+    if (!room.endpointsReady()) {
+        return;
+    }
+
+    tryNotifyPeerEndpoints(room);
+}
+
+void RoomService::tryNotifyPeerEndpoints(Room& room) {
+    if (room.peerEndpointNotified) {
+        return;
+    }
+
+    if (!room.endpointsReady()) {
+        return;
+    }
+
+    if (room.host.connection == nullptr || room.client.connection == nullptr) {
+        return;
+    }
+
+    SignalingMessage toHost;
+    toHost.type = SignalingType::PeerEndpoint;
+    toHost.roomId = room.roomId;
+    toHost.clientId = room.client.clientId;
+    toHost.endpointAddress = room.client.udpEndpoint.address;
+    toHost.endpointPort = room.client.udpEndpoint.port;
+    toHost.success = true;
+
+    if (room.host.connection != nullptr) {
+        room.host.connection->sendMessage(toHost);
+    }
+
+    SignalingMessage toClient;
+    toClient.type = SignalingType::PeerEndpoint;
+    toClient.roomId = room.roomId;
+    toClient.clientId = room.host.clientId;
+    toClient.endpointAddress = room.host.udpEndpoint.address;
+    toClient.endpointPort = room.host.udpEndpoint.port;
+    toClient.success = true;
+
+    if (room.client.connection != nullptr) {
+        room.client.connection->sendMessage(toClient);
+    }
+    room.peerEndpointNotified = true;
+}

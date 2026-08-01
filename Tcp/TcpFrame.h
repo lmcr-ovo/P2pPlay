@@ -6,7 +6,6 @@
 enum class SignalingType : quint16 {
     Unknown = 0,
     Register = 1,
-    RegisterResult = 11,
     CreateRoom = 2,
     RoomCreated = 3,
     JoinRoom = 4,

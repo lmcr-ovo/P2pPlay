@@ -10,14 +10,14 @@
 #include "SignalingMessage.h"
 #include "SignalingConnection.h"
 
-class SignalingServer : QObject {
+class SignalingServer : public QObject {
     Q_OBJECT
 public:
     SignalingServer();
     void start(const QHostAddress& address, quint16 port);
 
 signals:
-    void messageReceived(const SignalingConnection* connection,
+    void messageReceived(SignalingConnection* connection,
             const SignalingMessage& message);
 
 private slots:

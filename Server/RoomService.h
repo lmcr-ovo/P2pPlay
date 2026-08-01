@@ -23,6 +23,14 @@ public slots:
     void onProbeRequest(SignalingConnection* connection,
             const SignalingMessage& message);
 
+    void onUdpEndpointReady(const QString& roomId,
+            const QString& clientId,
+            const QHostAddress& address,
+            quint16 port);
+
+private:
+    void tryNotifyPeerEndpoints(Room& room);
+
 private:
     QSet<QString> idTable_;
     QHash<QString, Room> roomsById_;

@@ -9,6 +9,7 @@
 #include "SignalingServer.h"
 #include "SignalingDispatcher.h"
 #include "RoomService.h"
+#include "NatProbeService.h"
 
 class ServerApp : public QObject {
     Q_OBJECT
@@ -20,6 +21,7 @@ private:
     RoomService roomService_;
     SignalingServer signalingServer_;
     SignalingDispatcher signalingDispatcher_;
+    NatProbeService natProbeService_;
 };
 
 
