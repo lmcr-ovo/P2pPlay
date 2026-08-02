@@ -6,7 +6,8 @@
 #define P2PPLAY_ROOMSERVICE_H
 
 #include <QObject>
-#include "RoomStore.h"
+#include "SignalingConnection.h"
+#include "Room.h"
 
 class RoomService : public QObject {
     Q_OBJECT
@@ -22,11 +23,11 @@ public slots:
             const SignalingMessage& message);
     void onProbeRequest(SignalingConnection* connection,
             const SignalingMessage& message);
-
-    void onUdpEndpointReady(const QString& roomId,
-            const QString& clientId,
-            const QHostAddress& address,
-            quint16 port);
+    // 保存单个用户的公网ip及port
+    void onSingleUdpEndpointReady(const QString& roomId,
+                                  const QString& clientId,
+                                  const QHostAddress& address,
+                                  quint16 port);
 
 private:
     void tryNotifyPeerEndpoints(Room& room);

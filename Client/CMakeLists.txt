@@ -1,0 +1,21 @@
+add_library(Client
+            ClientApp.h ClientApp.cpp
+            SignalingClient.h SignalingClient.cpp
+            ClientDispatcher.h ClientDispatcher.cpp
+            NatTraversalService.h NatTraversalService.cpp
+            HostRoleService.h HostRoleService.cpp
+            GuestRoleService.h GuestRoleService.cpp)
+
+target_include_directories(Client PUBLIC
+        ${CMAKE_CURRENT_SOURCE_DIR})
+
+
+find_package(Qt5 REQUIRED COMPONENTS Widgets Gui Core Network)
+target_link_libraries(Client PUBLIC
+        Qt5::Core
+        Qt5::Network
+        Common
+        Tcp
+        Udp)
+
+add_subdirectory(test)

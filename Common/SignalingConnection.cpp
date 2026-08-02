@@ -14,7 +14,9 @@ SignalingConnection::SignalingConnection(QTcpSocket* sock, QObject* parent)
         return;
     }
 
-    sock_->setParent(this);
+    if (sock_->parent() == nullptr) {
+        sock_->setParent(this);
+    }
 
     connect(sock_, &QTcpSocket::readyRead, this, &SignalingConnection::onReadyRead);
     connect(sock_, &QTcpSocket::disconnected, this, &SignalingConnection::disconnected);

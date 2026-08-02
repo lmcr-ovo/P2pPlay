@@ -14,7 +14,7 @@ class SignalingServer : public QObject {
     Q_OBJECT
 public:
     SignalingServer();
-    void start(const QHostAddress& address, quint16 port);
+    bool start(const QHostAddress& address, quint16 port);
 
 signals:
     void messageReceived(SignalingConnection* connection,

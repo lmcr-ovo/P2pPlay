@@ -15,6 +15,13 @@ class ServerApp : public QObject {
     Q_OBJECT
 public:
     explicit ServerApp();
+    bool start(const QHostAddress& tcpAddress,
+               quint16 tcpPort,
+               const QHostAddress& udpAddress,
+               quint16 udpPort);
+
+signals:
+    void errorOccurred(const QString& reason);
 
 
 private:

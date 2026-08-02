@@ -16,6 +16,7 @@ P2pUdpTransport::P2pUdpTransport(QUdpSocket* sock, QObject* parent)
     }
 
     connect(sock_, &QUdpSocket::readyRead, this, &P2pUdpTransport::onReadyRead);
+    // 连接合成器发出的信号表示接收到一个完整的帧
     connect(&reassembler_, &UdpFrameReassembler::frameReady,
             this, &P2pUdpTransport::frameReady);
 
@@ -106,6 +107,9 @@ void P2pUdpTransport::setPeerFilterEnabled(bool enabled) {
     peerFilterEnabled_ = enabled;
 }
 
+/*
+ *  选择性过滤packet
+ */
 bool P2pUdpTransport::shouldAcceptDatagram(
         const QHostAddress& senderAddress,
         quint16 senderPort) const {
@@ -121,14 +125,20 @@ bool P2pUdpTransport::shouldAcceptDatagram(
            && senderPort == peerPort_;
 }
 
+/*
+ * 接收数据包并提供给合成器
+ */
 void P2pUdpTransport::onReadyRead() {
     while (sock_->hasPendingDatagrams()) {
         QNetworkDatagram datagram = sock_->receiveDatagram();
 
         const QByteArray bytes = datagram.data();
+
+        // 获取对端公网ip和port
         const QHostAddress senderAddress = datagram.senderAddress();
         const quint16 senderPort = datagram.senderPort();
 
+        // 选择性过滤
         if (!shouldAcceptDatagram(senderAddress, senderPort)) {
             continue;
         }
@@ -139,6 +149,7 @@ void P2pUdpTransport::onReadyRead() {
             continue;
         }
 
+        // 将packet及发送端公网ip和port提供给合成器，打包为帧
         reassembler_.pushPacket(packet, senderAddress, senderPort);
     }
 }

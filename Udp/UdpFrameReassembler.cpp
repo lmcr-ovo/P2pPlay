@@ -54,12 +54,17 @@ void UdpFrameReassembler::pushPacket(const UdpPacket& packet,
     dropFramesOlderThan(senderAddress, senderPort, packet.frameSeq);
 }
 
+/*
+ * 将接收到的packet合成为原始payload并打包为帧
+ */
 void UdpFrameReassembler::emitCompleteFrame(const FrameBuffer& buffer) {
     QByteArray payload;
     for (auto it = buffer.fragments.cbegin(); it != buffer.fragments.cend(); ++it) {
         payload.append(it.value());
     }
     UdpFrame frame;
+
+    //
     frame.channelType = buffer.channelType;
     frame.frameType = buffer.frameType;
     frame.senderAddress = buffer.senderAddress;

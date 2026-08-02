@@ -3,7 +3,6 @@
 //
 
 #include "SignalingDispatcher.h"
-#include "../Tcp/TcpFrame.h"
 
 void SignalingDispatcher::onMessageReceived(SignalingConnection* connection,
         const SignalingMessage& message) {

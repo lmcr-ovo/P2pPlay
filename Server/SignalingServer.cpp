@@ -10,8 +10,8 @@ SignalingServer::SignalingServer() {
     connect(&server_, &QTcpServer::newConnection, this, &SignalingServer::onNewConnection);
 }
 
-void SignalingServer::start(const QHostAddress& address, quint16 port) {
-    server_.listen(address, port);
+bool SignalingServer::start(const QHostAddress& address, quint16 port) {
+    return server_.listen(address, port);
 }
 
 void SignalingServer::onNewConnection() {

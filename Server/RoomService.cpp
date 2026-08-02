@@ -3,6 +3,7 @@
 //
 #include <QRandomGenerator>
 #include "RoomService.h"
+#include "SignalingConnection.h"
 
 RoomService::RoomService(QObject* parent) : QObject(parent) {}
 
@@ -215,10 +216,14 @@ void RoomService::onProbeRequest(SignalingConnection* connection,
     room.client.connection->sendMessage(permitted);
 }
 
-void RoomService::onUdpEndpointReady(const QString& roomId,
-        const QString& clientId,
-        const QHostAddress& address,
-        quint16 port) {
+
+/*
+ * 保存客户的公网ip及port
+ */
+void RoomService::onSingleUdpEndpointReady(const QString& roomId,
+                                           const QString& clientId,
+                                           const QHostAddress& address,
+                                           quint16 port) {
     auto it = roomsById_.find(roomId);
     if (it == roomsById_.end()) {
         return;

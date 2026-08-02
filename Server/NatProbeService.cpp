@@ -25,6 +25,9 @@ bool NatProbeService::start(const QHostAddress& address, quint16 port) {
     return true;
 }
 
+/*
+ * 仅处理客户端发出的Probe并回复ProbeAck
+ */
 void NatProbeService::onFrameReady(const UdpFrame &frame) {
     if (frame.channelType != UdpChannelType::Control
         || frame.frameType != UdpFrameType::Probe) {

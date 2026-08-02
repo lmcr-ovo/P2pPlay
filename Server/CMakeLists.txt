@@ -1,6 +1,5 @@
 add_library(Server
         Room.h
-        RoomStore.h RoomStore.cpp
         RoomService.h RoomService.cpp
         ServerApp.h ServerApp.cpp
         NatProbeService.h NatProbeService.cpp
@@ -18,3 +17,5 @@ target_link_libraries(Server PUBLIC
         Common
         Tcp
         Udp)
+
+add_subdirectory(test)
