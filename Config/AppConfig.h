@@ -1,0 +1,52 @@
+//
+// Created by ASUS on 2026/8/3.
+//
+
+#ifndef P2PPLAY_APPCONFIG_H
+#define P2PPLAY_APPCONFIG_H
+
+#include <QString>
+#include <QHostAddress>
+
+struct ServerConfig {
+    QHostAddress tcpAddress = QHostAddress(QHostAddress::LocalHost);
+    quint16 tcpPort = 9000;
+
+    QHostAddress udpAddress = QHostAddress(QHostAddress::LocalHost);
+    quint16 udpPort = 9001;
+};
+
+struct P2pConfig {
+    quint16 localUdpPort = 10000;
+
+    quint16 punchPortRange = 32;
+    int punchIntervalMs = 200;
+
+    int udpPacketsPerTick = 32;
+    int udpFlushIntervalMs = 1;
+};
+
+struct VideoConfig {
+    int fps = 100;
+
+    int width = 1280;
+    int height = 720;
+
+    int jpegQuality = 50;
+
+    int frameIntervalMs() const {
+        return fps > 0 ? 1000 / fps : 20;
+    }
+};
+
+struct AppConfig {
+    ServerConfig server;
+    P2pConfig p2p;
+    VideoConfig video;
+
+    static AppConfig defaultHost();
+    static AppConfig defaultGuest();
+};
+
+
+#endif //P2PPLAY_APPCONFIG_H

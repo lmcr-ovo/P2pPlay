@@ -9,6 +9,7 @@
 #include <QHostAddress>
 #include <QList>
 #include <VideoRender.h>
+#include "AppConfig.h"
 #include "SignalingClient.h"
 #include "ClientDispatcher.h"
 #include "P2pSession.h"
@@ -44,6 +45,12 @@ public:
                       quint16 serverUdpPort,
                       quint16 localUdpPort);
 
+    // 新增接口
+    bool startAsHost(const QString& clientId, const AppConfig& config);
+
+    bool startAsGuest(const QString& clientId,
+                      const QString& roomId,
+                      const AppConfig& config);
 signals:
     void logReceived(const QString& message);
     void errorOccurred(const QString& reason);

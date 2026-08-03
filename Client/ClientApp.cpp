@@ -63,6 +63,65 @@ bool ClientApp::startAsGuest(const QString& clientId,
     return true;
 }
 
+
+bool ClientApp::startAsHost(const QString& clientId, const AppConfig& config) {
+    clearRoleConnections();
+
+    role_ = Role::Host;
+    hostRoleService_.setClientId(clientId);
+    mediaService_.setRole(MediaRole::Host);
+
+    p2pSession_.applyConfig(config.p2p);
+    p2pSession_.setServerUdpEndpoint(
+            config.server.udpAddress,
+            config.server.udpPort
+            );
+
+    videoCapturer_.applyConfig(config.video);
+
+    if (!p2pSession_.bind(config.p2p.localUdpPort)) {
+        return false;
+    }
+
+    connectRoleSignals();
+    signalingClient_.connectToServer(
+            config.server.tcpAddress,
+            config.server.tcpPort
+            );
+    return true;
+}
+
+bool ClientApp::startAsGuest(const QString& clientId,
+                             const QString& roomId,
+                             const AppConfig& config) {
+    clearRoleConnections();
+
+    role_ = Role::Guest;
+    guestRoleService_.setClientInfo(roomId, clientId);
+    mediaService_.setRole(MediaRole::Guest);
+
+    p2pSession_.applyConfig(config.p2p);
+    p2pSession_.setServerUdpEndpoint(
+            config.server.udpAddress,
+            config.server.udpPort
+    );
+
+    videoCapturer_.applyConfig(config.video);
+
+    if (!p2pSession_.bind(config.p2p.localUdpPort)) {
+        return false;
+    }
+
+    connectRoleSignals();
+
+    signalingClient_.connectToServer(
+            config.server.tcpAddress,
+            config.server.tcpPort
+    );
+
+    return true;
+}
+
 void ClientApp::connectCommonSignals() {
     connect(&signalingClient_, &SignalingClient::messageReceived,
             &dispatcher_, &ClientDispatcher::onMessageReceived);

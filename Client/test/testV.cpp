@@ -63,13 +63,14 @@ int main(int argc, char* argv[]) {
         const quint16 udpPort = toPort(args, 5, 9001);
         const quint16 localUdpPort = toPort(args, 6, 10000);
 
-        started = client.startAsHost(
-                clientId,
-                serverAddress,
-                tcpPort,
-                serverAddress,
-                udpPort,
-                localUdpPort);
+        AppConfig config = AppConfig::defaultHost();
+        config.server.tcpAddress = serverAddress;
+        config.server.udpAddress = serverAddress;
+        config.server.tcpPort = tcpPort;
+        config.server.udpPort = udpPort;
+        config.p2p.localUdpPort = localUdpPort;
+
+        started = client.startAsHost(clientId, config);
 
         qDebug().noquote() << "media host started, clientId:" << clientId;
     } else if (role == "guest") {
@@ -86,14 +87,14 @@ int main(int argc, char* argv[]) {
         const quint16 udpPort = toPort(args, 6, 9001);
         const quint16 localUdpPort = toPort(args, 7, 10001);
 
-        started = client.startAsGuest(
-                clientId,
-                roomId,
-                serverAddress,
-                tcpPort,
-                serverAddress,
-                udpPort,
-                localUdpPort);
+        AppConfig config = AppConfig::defaultGuest();
+        config.server.tcpAddress = serverAddress;
+        config.server.udpAddress = serverAddress;
+        config.server.tcpPort = tcpPort;
+        config.server.udpPort = udpPort;
+        config.p2p.localUdpPort = localUdpPort;
+
+        started = client.startAsGuest(clientId, roomId, config);
 
         qDebug().noquote() << "media guest started, clientId:" << clientId
                            << "roomId:" << roomId;

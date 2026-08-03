@@ -15,6 +15,7 @@ find_package(Qt5 REQUIRED COMPONENTS Widgets Gui Core Network)
 target_link_libraries(Client PUBLIC
         Qt5::Core
         Qt5::Network
+        Config
         Common
         Tcp
         Udp

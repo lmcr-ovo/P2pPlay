@@ -10,4 +10,5 @@ find_package(Qt5 REQUIRED COMPONENTS Widgets Gui Core Network)
 target_link_libraries(Media PUBLIC
         Qt5::Core
         Qt5::Network
-        Tcp)
+        Tcp
+        Config)

@@ -23,6 +23,14 @@ P2pSession::P2pSession(QObject* parent)
     punchTimer_.setInterval(200);
 }
 
+void P2pSession::applyConfig(const P2pConfig &config) {
+    punchPortRange_ = config.punchPortRange;
+    punchTimer_.setInterval(config.punchIntervalMs);
+
+    transport_.setTick(config.udpPacketsPerTick,
+            config.udpFlushIntervalMs);
+}
+
 bool P2pSession::bind(quint16 localPort) {
     if (localPort == 0) {
         emit errorOccurred("invalid local udp port");

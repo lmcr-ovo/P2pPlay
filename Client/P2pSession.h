@@ -10,6 +10,7 @@
 #include <QList>
 #include <QUdpSocket>
 #include <QTimer>
+#include "AppConfig.h"
 #include "SignalingMessage.h"
 #include "UdpPacket.h"
 #include "P2pUdpTransport.h"
@@ -20,6 +21,7 @@ class P2pSession : public QObject {
 public:
     explicit P2pSession(QObject* parent);
 
+    void applyConfig(const P2pConfig& config);
     bool bind(quint16 localPort);
     void setClientInfo(const QString& roomId, const QString& clientId);
     void setServerUdpEndpoint(const QHostAddress& address, quint16 port);
