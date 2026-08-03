@@ -1,0 +1,144 @@
+#include "MediaService.h"
+
+MediaService::MediaService(QObject* parent)
+        : QObject(parent) {
+}
+
+void MediaService::setRole(MediaRole role) {
+    role_ = role;
+}
+
+MediaRole MediaService::role() const {
+    return role_;
+}
+
+void MediaService::start() {
+    if (role_ == MediaRole::Unknown) {
+        emit errorOccurred("media role is unknown");
+        return;
+    }
+
+    running_ = true;
+    emit logReceived("media service started");
+}
+
+void MediaService::stop() {
+    running_ = false;
+    emit logReceived("media service stopped");
+}
+
+bool MediaService::isRunning() const {
+    return running_;
+}
+
+void MediaService::onP2pReady(const QHostAddress& address, quint16 port) {
+    Q_UNUSED(address)
+    Q_UNUSED(port)
+
+    start();
+}
+
+void MediaService::onMediaFrameReceived(const UdpFrame& frame) {
+    if (!running_) {
+        return;
+    }
+
+    if (frame.channelType != UdpChannelType::Media) {
+        return;
+    }
+
+    switch (frame.frameType) {
+        case UdpFrameType::VideoFrame:
+            emit videoFrameReceived(frame.payload);
+            break;
+
+        case UdpFrameType::AudioFrame:
+            emit audioFrameReceived(frame.payload);
+            break;
+
+        case UdpFrameType::InputEvent:
+            emit inputEventReceived(frame.payload);
+            break;
+
+        case UdpFrameType::KeyFrameRequest:
+            emit keyFrameRequestReceived(frame.payload);
+            break;
+
+        default:
+            break;
+    }
+}
+
+bool MediaService::sendVideoFrame(const QByteArray& payload) {
+    if (!running_) {
+        emit errorOccurred("media service is not running");
+        return false;
+    }
+
+    if (!canSend(UdpFrameType::VideoFrame)) {
+        emit errorOccurred("current role cannot send video frame");
+        return false;
+    }
+
+    emit mediaFrameToSend(UdpFrameType::VideoFrame, payload);
+    return true;
+}
+
+bool MediaService::sendAudioFrame(const QByteArray& payload) {
+    if (!running_) {
+        emit errorOccurred("media service is not running");
+        return false;
+    }
+
+    if (!canSend(UdpFrameType::AudioFrame)) {
+        emit errorOccurred("current role cannot send audio frame");
+        return false;
+    }
+
+    emit mediaFrameToSend(UdpFrameType::AudioFrame, payload);
+    return true;
+}
+
+bool MediaService::sendInputEvent(const QByteArray& payload) {
+    if (!running_) {
+        emit errorOccurred("media service is not running");
+        return false;
+    }
+
+    if (!canSend(UdpFrameType::InputEvent)) {
+        emit errorOccurred("current role cannot send input event");
+        return false;
+    }
+
+    emit mediaFrameToSend(UdpFrameType::InputEvent, payload);
+    return true;
+}
+
+bool MediaService::sendKeyFrameRequest(const QByteArray& payload) {
+    if (!running_) {
+        emit errorOccurred("media service is not running");
+        return false;
+    }
+
+    if (!canSend(UdpFrameType::KeyFrameRequest)) {
+        emit errorOccurred("current role cannot send key frame request");
+        return false;
+    }
+
+    emit mediaFrameToSend(UdpFrameType::KeyFrameRequest, payload);
+    return true;
+}
+
+bool MediaService::canSend(UdpFrameType type) const {
+    if (role_ == MediaRole::Host) {
+        return type == UdpFrameType::VideoFrame
+               || type == UdpFrameType::AudioFrame;
+    }
+
+    if (role_ == MediaRole::Guest) {
+        return type == UdpFrameType::InputEvent
+               || type == UdpFrameType::KeyFrameRequest;
+    }
+
+    return false;
+}

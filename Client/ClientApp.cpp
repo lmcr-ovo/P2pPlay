@@ -7,9 +7,12 @@
 ClientApp::ClientApp()
     : signalingClient_(this),
       dispatcher_(this),
-      natTraversalService_(this),
+      p2pSession_(this),
+      mediaService_(this),
       hostRoleService_(this),
-      guestRoleService_(this) {
+      guestRoleService_(this),
+      videoCapturer_(this),
+      videoRender_(this) {
     connectCommonSignals();
 }
 
@@ -23,14 +26,16 @@ bool ClientApp::startAsHost(const QString& clientId,
 
     role_ = Role::Host;
     hostRoleService_.setClientId(clientId);
-    natTraversalService_.setServerUdpEndpoint(serverUdpAddress, serverUdpPort);
+    p2pSession_.setServerUdpEndpoint(serverUdpAddress, serverUdpPort);
 
-    if (!natTraversalService_.bind(localUdpPort)) {
+    if (!p2pSession_.bind(localUdpPort)) {
         return false;
     }
 
     connectRoleSignals();
     signalingClient_.connectToServer(serverTcpAddress, serverTcpPort);
+
+    mediaService_.setRole(MediaRole::Host);
     return true;
 }
 
@@ -45,14 +50,16 @@ bool ClientApp::startAsGuest(const QString& clientId,
 
     role_ = Role::Guest;
     guestRoleService_.setClientInfo(roomId, clientId);
-    natTraversalService_.setServerUdpEndpoint(serverUdpAddress, serverUdpPort);
+    p2pSession_.setServerUdpEndpoint(serverUdpAddress, serverUdpPort);
 
-    if (!natTraversalService_.bind(localUdpPort)) {
+    if (!p2pSession_.bind(localUdpPort)) {
         return false;
     }
 
     connectRoleSignals();
     signalingClient_.connectToServer(serverTcpAddress, serverTcpPort);
+
+    mediaService_.setRole(MediaRole::Guest);
     return true;
 }
 
@@ -61,10 +68,10 @@ void ClientApp::connectCommonSignals() {
             &dispatcher_, &ClientDispatcher::onMessageReceived);
 
     connect(&dispatcher_, &ClientDispatcher::probePermitted,
-            &natTraversalService_, &NatTraversalService::onProbePermitted);
+            &p2pSession_, &P2pSession::onProbePermitted);
 
     connect(&dispatcher_, &ClientDispatcher::peerEndpoint,
-            &natTraversalService_, &NatTraversalService::onPeerEndpoint);
+            &p2pSession_, &P2pSession::onPeerEndpoint);
 
     connect(&dispatcher_, &ClientDispatcher::errorReceived,
             this, [this](const SignalingMessage& message) {
@@ -77,13 +84,28 @@ void ClientApp::connectCommonSignals() {
                                    .arg(static_cast<quint16>(message.type)));
     });
 
+
+
+    connect(&p2pSession_, &P2pSession::p2pReady,
+            &mediaService_, &MediaService::onP2pReady);
+    connect(&p2pSession_, &P2pSession::mediaFrameReceived,
+            &mediaService_, &MediaService::onMediaFrameReceived);
+    connect(&mediaService_, &MediaService::mediaFrameToSend,
+            &p2pSession_, &P2pSession::sendMediaFrame);
+    connect(&mediaService_, &MediaService::logReceived,
+            this, &ClientApp::logReceived);
+    connect(&mediaService_, &MediaService::errorOccurred,
+            this, &ClientApp::errorOccurred);
+
+
+
     connect(&signalingClient_, &SignalingClient::errorOccurred,
             this, &ClientApp::errorOccurred);
 
-    connect(&natTraversalService_, &NatTraversalService::errorOccurred,
+    connect(&p2pSession_, &P2pSession::errorOccurred,
             this, &ClientApp::errorOccurred);
 
-    connect(&natTraversalService_, &NatTraversalService::logReceived,
+    connect(&p2pSession_, &P2pSession::logReceived,
             this, &ClientApp::logReceived);
 }
 
@@ -102,16 +124,24 @@ void ClientApp::connectRoleSignals() {
                 &signalingClient_, &SignalingClient::sendMessage));
 
         roleConnections_.append(connect(&hostRoleService_, &HostRoleService::traversalContextReady,
-                &natTraversalService_, &NatTraversalService::setClientInfo));
+                                        &p2pSession_, &P2pSession::setClientInfo));
 
-        roleConnections_.append(connect(&natTraversalService_, &NatTraversalService::p2pReady,
-                &hostRoleService_, &HostRoleService::onP2pReady));
+        roleConnections_.append(connect(&p2pSession_, &P2pSession::p2pReady,
+                                        &hostRoleService_, &HostRoleService::onP2pReady));
 
         roleConnections_.append(connect(&hostRoleService_, &HostRoleService::logReceived,
                 this, &ClientApp::logReceived));
 
         roleConnections_.append(connect(&hostRoleService_, &HostRoleService::errorOccurred,
                 this, &ClientApp::errorOccurred));
+
+
+
+        // 测试
+        roleConnections_.append(connect(&p2pSession_, &P2pSession::p2pReady,
+                &videoCapturer_, &VideoCapturer::onP2pReady));
+        roleConnections_.append(connect(&videoCapturer_, &VideoCapturer::videoFrameReady,
+                &mediaService_, &MediaService::sendVideoFrame));
         return;
     }
 
@@ -126,16 +156,21 @@ void ClientApp::connectRoleSignals() {
                 &signalingClient_, &SignalingClient::sendMessage));
 
         roleConnections_.append(connect(&guestRoleService_, &GuestRoleService::traversalContextReady,
-                &natTraversalService_, &NatTraversalService::setClientInfo));
+                                        &p2pSession_, &P2pSession::setClientInfo));
 
-        roleConnections_.append(connect(&natTraversalService_, &NatTraversalService::p2pReady,
-                &guestRoleService_, &GuestRoleService::onP2pReady));
+        roleConnections_.append(connect(&p2pSession_, &P2pSession::p2pReady,
+                                        &guestRoleService_, &GuestRoleService::onP2pReady));
 
         roleConnections_.append(connect(&guestRoleService_, &GuestRoleService::logReceived,
                 this, &ClientApp::logReceived));
 
         roleConnections_.append(connect(&guestRoleService_, &GuestRoleService::errorOccurred,
                 this, &ClientApp::errorOccurred));
+
+
+
+        roleConnections_.append(connect(&mediaService_, &MediaService::videoFrameReceived,
+                &videoRender_, &VideoRender::onVideoFrameRecevied));
     }
 }
 

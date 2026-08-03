@@ -8,11 +8,14 @@
 #include <QObject>
 #include <QHostAddress>
 #include <QList>
+#include <VideoRender.h>
 #include "SignalingClient.h"
 #include "ClientDispatcher.h"
-#include "NatTraversalService.h"
+#include "P2pSession.h"
 #include "HostRoleService.h"
 #include "GuestRoleService.h"
+#include "MediaService.h"
+#include "VideoCapturer.h"
 
 class ClientApp : public QObject {
     Q_OBJECT
@@ -56,10 +59,15 @@ private:
 
     SignalingClient signalingClient_;
     ClientDispatcher dispatcher_;
-    NatTraversalService natTraversalService_;
+    P2pSession p2pSession_;
 
     HostRoleService hostRoleService_;
     GuestRoleService guestRoleService_;
+
+    MediaService mediaService_;
+
+    VideoCapturer videoCapturer_;
+    VideoRender videoRender_;
 };
 
 

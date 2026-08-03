@@ -2,11 +2,11 @@
 // Created by ASUS on 2026/8/1.
 //
 
-#include "NatTraversalService.h"
+#include "P2pSession.h"
 #include "UdpControlPayload.h"
 #include "UdpControlPayloadCodec.h"
 
-NatTraversalService::NatTraversalService(QObject* parent)
+P2pSession::P2pSession(QObject* parent)
     : QObject(parent),
     sock_(this),
     transport_(&sock_, this),
@@ -15,15 +15,15 @@ NatTraversalService::NatTraversalService(QObject* parent)
     transport_.setPeerFilterEnabled(false);
 
     connect(&transport_, &P2pUdpTransport::frameReady,
-            this, &NatTraversalService::onFrameReady);
+            this, &P2pSession::onFrameReady);
     connect(&transport_, &P2pUdpTransport::errorOccurred,
-            this, &NatTraversalService::errorOccurred);
+            this, &P2pSession::errorOccurred);
     connect(&punchTimer_, &QTimer::timeout,
-            this, &NatTraversalService::sendPunch);
+            this, &P2pSession::sendPunch);
     punchTimer_.setInterval(200);
 }
 
-bool NatTraversalService::bind(quint16 localPort) {
+bool P2pSession::bind(quint16 localPort) {
     if (localPort == 0) {
         emit errorOccurred("invalid local udp port");
         return false;
@@ -36,21 +36,21 @@ bool NatTraversalService::bind(quint16 localPort) {
     return true;
 }
 
-void NatTraversalService::setClientInfo(const QString &roomId, const QString &clientId) {
+void P2pSession::setClientInfo(const QString &roomId, const QString &clientId) {
     roomId_ = roomId;
     clientId_ = clientId;
 }
 
-void NatTraversalService::setServerUdpEndpoint(const QHostAddress &address, quint16 port) {
+void P2pSession::setServerUdpEndpoint(const QHostAddress &address, quint16 port) {
     serverUdpAddress_ = address;
     serverUdpPort_ =  port;
 }
 
-void NatTraversalService::setPunchPortRange(quint16 range) {
+void P2pSession::setPunchPortRange(quint16 range) {
     punchPortRange_ = range;
 }
 
-void NatTraversalService::onProbePermitted(const SignalingMessage &message) {
+void P2pSession::onProbePermitted(const SignalingMessage &message) {
     if (!message.success) {
         emit errorOccurred(message.reason);
         return;
@@ -62,7 +62,7 @@ void NatTraversalService::onProbePermitted(const SignalingMessage &message) {
     sendProbe();
 }
 
-void NatTraversalService::onPeerEndpoint(const SignalingMessage &message) {
+void P2pSession::onPeerEndpoint(const SignalingMessage &message) {
     if (!message.success) {
         emit errorOccurred(message.reason);
         return;
@@ -79,6 +79,9 @@ void NatTraversalService::onPeerEndpoint(const SignalingMessage &message) {
     transport_.setPeerEndpoint(peerAddress_, peerPort_);
     transport_.setPeerFilterEnabled(false);
 
+    //debug
+    peerClientId_ = message.clientId;
+
     emit logReceived(QString("peer endpoint: %1:%2")
                                 .arg(peerAddress_.toString())
                                 .arg(peerPort_));
@@ -90,7 +93,7 @@ void NatTraversalService::onPeerEndpoint(const SignalingMessage &message) {
     }
 }
 
-void NatTraversalService::sendProbe() {
+void P2pSession::sendProbe() {
     if (roomId_.isEmpty() || clientId_.isEmpty()) {
         emit errorOccurred("room id or client id is null");
         return;
@@ -121,7 +124,7 @@ void NatTraversalService::sendProbe() {
     emit logReceived("udp probe sent");
 }
 
-void NatTraversalService::sendPunch() {
+void P2pSession::sendPunch() {
     if (p2pReady_) {
         punchTimer_.stop();
         return;
@@ -149,7 +152,7 @@ void NatTraversalService::sendPunch() {
     }
 }
 
-QList<quint16> NatTraversalService::punchCandidatePorts() const {
+QList<quint16> P2pSession::punchCandidatePorts() const {
     QList<quint16> ports;
 
     if (peerPort_ == 0) {
@@ -172,7 +175,11 @@ QList<quint16> NatTraversalService::punchCandidatePorts() const {
     return ports;
 }
 
-void NatTraversalService::onFrameReady(const UdpFrame &frame) {
+void P2pSession::onFrameReady(const UdpFrame &frame) {
+    if (frame.channelType == UdpChannelType::Media) {
+        emit mediaFrameReceived(frame);
+        return;
+    }
     if (frame.channelType != UdpChannelType::Control) {
         return;
     }
@@ -193,7 +200,7 @@ void NatTraversalService::onFrameReady(const UdpFrame &frame) {
     }
 }
 
-void NatTraversalService::handlePunch(const UdpFrame &frame) {
+void P2pSession::handlePunch(const UdpFrame &frame) {
     UdpPunchPayload payload;
     if (!UdpControlPayloadCodec::decodePunch(frame.payload, &payload)) {
         emit errorOccurred("invalid punch payload");
@@ -201,6 +208,14 @@ void NatTraversalService::handlePunch(const UdpFrame &frame) {
     }
 
     if (payload.roomId != roomId_) {
+        return;
+    }
+
+    if (payload.clientId == clientId_) {
+        return;
+    }
+
+    if (!peerClientId_.isEmpty() && payload.clientId != peerClientId_) {
         return;
     }
 
@@ -222,7 +237,7 @@ void NatTraversalService::handlePunch(const UdpFrame &frame) {
     markP2pReady(peerAddress_, peerPort_);
 }
 
-void NatTraversalService::handlePunchAck(const UdpFrame &frame) {
+void P2pSession::handlePunchAck(const UdpFrame &frame) {
     UdpPunchAckPayload payload;
     if (!UdpControlPayloadCodec::decodePunchAck(frame.payload, &payload)) {
         emit errorOccurred("invalid punch ack payload");
@@ -233,10 +248,19 @@ void NatTraversalService::handlePunchAck(const UdpFrame &frame) {
         return;
     }
 
+    if (payload.clientId == clientId_) {
+        return;
+    }
+
+    if (!peerClientId_.isEmpty() && payload.clientId != peerClientId_) {
+        return;
+    }
+
     markP2pReady(frame.senderAddress, frame.senderPort);
 }
 
-void NatTraversalService::markP2pReady(const QHostAddress &address, quint16 port) {
+// 锁定对端udp port
+void P2pSession::markP2pReady(const QHostAddress &address, quint16 port) {
     if (p2pReady_) {
         return;
     }
@@ -250,4 +274,9 @@ void NatTraversalService::markP2pReady(const QHostAddress &address, quint16 port
     transport_.setPeerFilterEnabled(true);
 
     emit p2pReady(peerAddress_, peerPort_);
+}
+
+
+void P2pSession::sendMediaFrame(UdpFrameType type, const QByteArray& payload) {
+    transport_.sendFrame(UdpChannelType::Media, type, payload);
 }

@@ -7,7 +7,7 @@ Client/
   ClientApp
   SignalingClient
   ClientDispatcher
-  NatTraversalService
+  P2pSession
   HostRoleService
   GuestRoleService
 ```
@@ -25,7 +25,7 @@ ClientDispatcher
   分发员
   根据 SignalingType 把消息分发给不同业务模块
 
-NatTraversalService
+P2pSession
   UDP 打洞工作人员
   绑定本地 UDP socket
   收到 ProbePermitted 后向服务器发 Probe
@@ -45,7 +45,7 @@ GuestRoleService
   Guest 业务
   注册
   加入房间
-  收到 ProbePermitted 后配合 NatTraversalService 发 Probe
+  收到 ProbePermitted 后配合 P2pSession 发 Probe
   收到 p2pReady 后进入接收媒体/发送输入准备阶段
 
 ClientApp
@@ -67,10 +67,10 @@ ClientApp
 6. HostRoleService 收到 PeerJoined
 7. HostRoleService 发送 ProbeRequest
 8. Server 发 ProbePermitted 给 Host 和 Guest
-9. NatTraversalService 收到 ProbePermitted
+9. P2pSession 收到 ProbePermitted
 10. UDP -> Server: Probe(roomId, clientId)
 11. Server TCP -> Host: PeerEndpoint(Guest endpoint)
-12. NatTraversalService 收到 PeerEndpoint
+12. P2pSession 收到 PeerEndpoint
 13. 开始向 Guest endpoint 发 Punch
 14. 收到 Punch/PunchAck 后 p2pReady
 ```
@@ -83,16 +83,16 @@ ClientApp
 3. GuestRoleService 发送 JoinRoom
 4. Server 回复 Log / Error
 5. Server 发 ProbePermitted
-6. NatTraversalService 收到 ProbePermitted
+6. P2pSession 收到 ProbePermitted
 7. UDP -> Server: Probe(roomId, clientId)
 8. Server TCP -> Guest: PeerEndpoint(Host endpoint)
-9. NatTraversalService 收到 PeerEndpoint
+9. P2pSession 收到 PeerEndpoint
 10. 开始向 Host endpoint 发 Punch
 11. 收到 Punch/PunchAck 后 p2pReady
 ```
 
 比较关键的是：  
-**`NatTraversalService` 不应该关心自己是 Host 还是 Guest。**
+**`P2pSession` 不应该关心自己是 Host 还是 Guest。**
 
 它只需要知道：
 
@@ -198,7 +198,7 @@ bool p2pReady_ = false;
 然后：
 
 ```cpp
-void NatTraversalService::markP2pReady(const QHostAddress& address, quint16 port)
+void P2pSession::markP2pReady(const QHostAddress& address, quint16 port)
 {
     if (p2pReady_) {
         return;
@@ -222,15 +222,15 @@ connect(&dispatcher_, &ClientDispatcher::peerJoined,
         &hostRoleService_, &HostRoleService::onPeerJoined);
 
 connect(&dispatcher_, &ClientDispatcher::probePermitted,
-        &natTraversalService_, &NatTraversalService::onProbePermitted);
+        &p2pSession_, &P2pSession::onProbePermitted);
 
 connect(&dispatcher_, &ClientDispatcher::peerEndpoint,
-        &natTraversalService_, &NatTraversalService::onPeerEndpoint);
+        &p2pSession_, &P2pSession::onPeerEndpoint);
 
-connect(&natTraversalService_, &NatTraversalService::p2pReady,
+connect(&p2pSession_, &P2pSession::p2pReady,
         &hostRoleService_, &HostRoleService::onP2pReady);
 
-connect(&natTraversalService_, &NatTraversalService::p2pReady,
+connect(&p2pSession_, &P2pSession::p2pReady,
         &guestRoleService_, &GuestRoleService::onP2pReady);
 ```
 
@@ -309,7 +309,7 @@ client.exe guest Bob 123456 127.0.0.1 9000 127.0.0.1 9001 10001
 1. 写 Client/CMakeLists.txt 
 2. 写 SignalingClient
 3. 写 ClientDispatcher
-4. 写 NatTraversalService
+4. 写 P2pSession
 5. 写 HostRoleService / GuestRoleService
 6. 写一个 Client/test/testNatTraversalClient.cpp
 7. 本机起 Server + 两个 Client 测完整打洞流程

@@ -2,8 +2,8 @@
 // Created by ASUS on 2026/8/1.
 //
 
-#ifndef P2PPLAY_NATTRAVERSALSERVICE_H
-#define P2PPLAY_NATTRAVERSALSERVICE_H
+#ifndef P2PPLAY_P2PSESSION_H
+#define P2PPLAY_P2PSESSION_H
 
 #include <QObject>
 #include <QHostAddress>
@@ -14,11 +14,11 @@
 #include "UdpPacket.h"
 #include "P2pUdpTransport.h"
 
-class NatTraversalService : public QObject {
+class P2pSession : public QObject {
     Q_OBJECT
 
 public:
-    explicit NatTraversalService(QObject* parent);
+    explicit P2pSession(QObject* parent);
 
     bool bind(quint16 localPort);
     void setClientInfo(const QString& roomId, const QString& clientId);
@@ -27,12 +27,14 @@ public:
 
 signals:
     void p2pReady(const QHostAddress& address, quint16 port);
+    void mediaFrameReceived(const UdpFrame& frame);
     void errorOccurred(const QString& reason);
     void logReceived(const QString& message);
 
 public slots:
     void onProbePermitted(const SignalingMessage& message);
     void onPeerEndpoint(const SignalingMessage& message);
+    void sendMediaFrame(UdpFrameType type, const QByteArray& payload);
 
 private slots:
     void onFrameReady(const UdpFrame& frame);
@@ -61,7 +63,10 @@ private:
     QTimer punchTimer_;
     quint16 punchPortRange_ = 32;
     bool p2pReady_ = false;
+
+
+    QString peerClientId_;
 };
 
 
-#endif //P2PPLAY_NATTRAVERSALSERVICE_H
+#endif //P2PPLAY_P2PSESSION_H

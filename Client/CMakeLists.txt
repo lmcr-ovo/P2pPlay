@@ -2,9 +2,10 @@ add_library(Client
             ClientApp.h ClientApp.cpp
             SignalingClient.h SignalingClient.cpp
             ClientDispatcher.h ClientDispatcher.cpp
-            NatTraversalService.h NatTraversalService.cpp
+            P2pSession.h P2pSession.cpp
             HostRoleService.h HostRoleService.cpp
-            GuestRoleService.h GuestRoleService.cpp)
+            GuestRoleService.h GuestRoleService.cpp
+            MediaService.h MediaService.cpp)
 
 target_include_directories(Client PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR})
@@ -16,6 +17,7 @@ target_link_libraries(Client PUBLIC
         Qt5::Network
         Common
         Tcp
-        Udp)
+        Udp
+        Media)
 
 add_subdirectory(test)

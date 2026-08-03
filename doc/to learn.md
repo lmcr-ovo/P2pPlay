@@ -10,7 +10,7 @@
 - `Client/ClientDispatcher.h/.cpp`
   - 按 `SignalingType` 分发服务器消息。
 
-- `Client/NatTraversalService.h/.cpp`
+- `Client/P2pSession.h/.cpp`
   - UDP Probe。
   - 接收 `PeerEndpoint`。
   - Punch / PunchAck。
@@ -27,7 +27,7 @@
   - 收到 `p2pReady` 后输出日志。
 
 - `Client/ClientApp.h/.cpp`
-  - 组装 `SignalingClient / Dispatcher / NatTraversalService / HostRoleService / GuestRoleService`。
+  - 组装 `SignalingClient / Dispatcher / P2pSession / HostRoleService / GuestRoleService`。
   - 提供：
     ```cpp
     startAsHost(...)
