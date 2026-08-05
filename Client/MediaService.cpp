@@ -38,7 +38,7 @@ void MediaService::onP2pReady(const QHostAddress& address, quint16 port) {
     start();
 }
 
-void MediaService::onMediaFrameReceived(const UdpFrame& frame) {
+void MediaService::onUdpMediaFrameReceived(const UdpFrame& frame) {
     if (!running_) {
         return;
     }
@@ -49,15 +49,15 @@ void MediaService::onMediaFrameReceived(const UdpFrame& frame) {
 
     switch (frame.frameType) {
         case UdpFrameType::VideoFrame:
-            emit videoFrameReceived(frame.payload);
+            emit videoSampleBytesReceived(frame.payload);
             break;
 
         case UdpFrameType::AudioFrame:
-            emit audioFrameReceived(frame.payload);
+            emit audioSampleBytesReceived(frame.payload);
             break;
 
         case UdpFrameType::InputEvent:
-            emit inputEventReceived(frame.payload);
+            emit inputCommandReceived(frame.payload);
             break;
 
         case UdpFrameType::KeyFrameRequest:
@@ -69,7 +69,7 @@ void MediaService::onMediaFrameReceived(const UdpFrame& frame) {
     }
 }
 
-bool MediaService::sendVideoFrame(const QByteArray& payload) {
+bool MediaService::sendVideoSampleBytes(const QByteArray& payload) {
     if (!running_) {
         emit errorOccurred("media service is not running");
         return false;
@@ -80,11 +80,11 @@ bool MediaService::sendVideoFrame(const QByteArray& payload) {
         return false;
     }
 
-    emit mediaFrameToSend(UdpFrameType::VideoFrame, payload);
+    emit udpMediaFrameToSend(UdpFrameType::VideoFrame, payload);
     return true;
 }
 
-bool MediaService::sendAudioFrame(const QByteArray& payload) {
+bool MediaService::sendAudioSampleBytes(const QByteArray& sampleBytes) {
     if (!running_) {
         emit errorOccurred("media service is not running");
         return false;
@@ -95,11 +95,11 @@ bool MediaService::sendAudioFrame(const QByteArray& payload) {
         return false;
     }
 
-    emit mediaFrameToSend(UdpFrameType::AudioFrame, payload);
+    emit udpMediaFrameToSend(UdpFrameType::AudioFrame, sampleBytes);
     return true;
 }
 
-bool MediaService::sendInputEvent(const QByteArray& payload) {
+bool MediaService::sendInputCommand(const QByteArray& commandBytes) {
     if (!running_) {
         emit errorOccurred("media service is not running");
         return false;
@@ -110,7 +110,7 @@ bool MediaService::sendInputEvent(const QByteArray& payload) {
         return false;
     }
 
-    emit mediaFrameToSend(UdpFrameType::InputEvent, payload);
+    emit udpMediaFrameToSend(UdpFrameType::InputEvent, commandBytes);
     return true;
 }
 
@@ -125,7 +125,7 @@ bool MediaService::sendKeyFrameRequest(const QByteArray& payload) {
         return false;
     }
 
-    emit mediaFrameToSend(UdpFrameType::KeyFrameRequest, payload);
+    emit udpMediaFrameToSend(UdpFrameType::KeyFrameRequest, payload);
     return true;
 }
 

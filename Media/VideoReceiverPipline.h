@@ -18,7 +18,7 @@ signals:
     void videoImageReady(const QImage& img);
 
 public slots:
-    void onVideoSampleBytesReady(const QByteArray& sampleBytes);
+    void onVideoSampleBytesReceived(const QByteArray& sampleBytes);
 
 private:
     VideoDecoder decoder_;

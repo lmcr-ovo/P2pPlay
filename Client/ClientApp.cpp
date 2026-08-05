@@ -11,8 +11,9 @@ ClientApp::ClientApp()
       mediaService_(this),
       hostRoleService_(this),
       guestRoleService_(this),
-      videoCapturer_(this),
-      videoRender_(this) {
+      videoSenderPipeline_(this),
+      videoRecevierPipline_(this),
+      videoWidget_(nullptr) {
     connectCommonSignals();
 }
 
@@ -77,8 +78,7 @@ bool ClientApp::startAsHost(const QString& clientId, const AppConfig& config) {
             config.server.udpPort
             );
 
-    videoCapturer_.applyConfig(config.video);
-
+    videoSenderPipeline_.applyConfig(config);
     if (!p2pSession_.bind(config.p2p.localUdpPort)) {
         return false;
     }
@@ -97,6 +97,7 @@ bool ClientApp::startAsGuest(const QString& clientId,
     clearRoleConnections();
 
     role_ = Role::Guest;
+    videoWidget_.show();
     guestRoleService_.setClientInfo(roomId, clientId);
     mediaService_.setRole(MediaRole::Guest);
 
@@ -105,8 +106,6 @@ bool ClientApp::startAsGuest(const QString& clientId,
             config.server.udpAddress,
             config.server.udpPort
     );
-
-    videoCapturer_.applyConfig(config.video);
 
     if (!p2pSession_.bind(config.p2p.localUdpPort)) {
         return false;
@@ -148,8 +147,8 @@ void ClientApp::connectCommonSignals() {
     connect(&p2pSession_, &P2pSession::p2pReady,
             &mediaService_, &MediaService::onP2pReady);
     connect(&p2pSession_, &P2pSession::mediaFrameReceived,
-            &mediaService_, &MediaService::onMediaFrameReceived);
-    connect(&mediaService_, &MediaService::mediaFrameToSend,
+            &mediaService_, &MediaService::onUdpMediaFrameReceived);
+    connect(&mediaService_, &MediaService::udpMediaFrameToSend,
             &p2pSession_, &P2pSession::sendMediaFrame);
     connect(&mediaService_, &MediaService::logReceived,
             this, &ClientApp::logReceived);
@@ -198,9 +197,9 @@ void ClientApp::connectRoleSignals() {
 
         // 测试
         roleConnections_.append(connect(&p2pSession_, &P2pSession::p2pReady,
-                &videoCapturer_, &VideoCapturer::onP2pReady));
-        roleConnections_.append(connect(&videoCapturer_, &VideoCapturer::videoFrameReady,
-                &mediaService_, &MediaService::sendVideoFrame));
+                &videoSenderPipeline_, &VideoSenderPipeline::start));
+        roleConnections_.append(connect(&videoSenderPipeline_, &VideoSenderPipeline::videoSampleBytesReady,
+                &mediaService_, &MediaService::sendVideoSampleBytes));
         return;
     }
 
@@ -227,9 +226,11 @@ void ClientApp::connectRoleSignals() {
                 this, &ClientApp::errorOccurred));
 
 
-
-        roleConnections_.append(connect(&mediaService_, &MediaService::videoFrameReceived,
-                &videoRender_, &VideoRender::onVideoFrameRecevied));
+        // 测试
+        roleConnections_.append(connect(&mediaService_, &MediaService::videoSampleBytesReceived,
+                &videoRecevierPipline_, &VideoRecevierPipline::onVideoSampleBytesReceived));
+        roleConnections_.append(connect(&videoRecevierPipline_, &VideoRecevierPipline::videoImageReady,
+                &videoWidget_, &VideoWidget::onVideoImageReady));
     }
 }
 

@@ -8,7 +8,6 @@
 #include <QObject>
 #include <QHostAddress>
 #include <QList>
-#include <VideoRender.h>
 #include "AppConfig.h"
 #include "SignalingClient.h"
 #include "ClientDispatcher.h"
@@ -16,7 +15,9 @@
 #include "HostRoleService.h"
 #include "GuestRoleService.h"
 #include "MediaService.h"
-#include "VideoCapturer.h"
+#include "VideoSenderPipeline.h"
+#include "VideoReceiverPipline.h"
+#include "VideoWidget.h"
 
 class ClientApp : public QObject {
     Q_OBJECT
@@ -72,9 +73,9 @@ private:
     GuestRoleService guestRoleService_;
 
     MediaService mediaService_;
-
-    VideoCapturer videoCapturer_;
-    VideoRender videoRender_;
+    VideoSenderPipeline videoSenderPipeline_;
+    VideoRecevierPipline videoRecevierPipline_;
+    VideoWidget videoWidget_;
 };
 
 

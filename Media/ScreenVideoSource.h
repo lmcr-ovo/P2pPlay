@@ -28,6 +28,8 @@ private:
 private:
     QTimer timer_;
     quint16 intervalMs_ = 50;
+    quint16 width_ = 640;
+    quint16 height_ = 360;
 };
 
 

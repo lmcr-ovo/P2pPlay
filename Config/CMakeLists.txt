@@ -9,4 +9,5 @@ target_include_directories(Config PUBLIC
 find_package(Qt5 REQUIRED COMPONENTS Widgets Gui Core Network)
 target_link_libraries(Config PUBLIC
         Qt5::Core
-        Qt5::Network)
+        Qt5::Network
+        Media)

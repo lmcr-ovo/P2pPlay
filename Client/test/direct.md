@@ -5,14 +5,14 @@ Host:
 P2pSession::p2pReady
   -> VideoCapturer::onP2pReady
   -> timer 每 500ms emit videoFrameReady("hello")
-  -> MediaService::sendVideoFrame
+  -> MediaService::sendVideoSampleBytes
   -> P2pSession::sendMediaFrame
   -> UDP Media/VideoFrame
 
 Guest:
 P2pSession 收到 Media/VideoFrame
-  -> MediaService::onMediaFrameReceived
-  -> videoFrameReceived
+  -> MediaService::onUdpMediaFrameReceived
+  -> videoSampleBytesReceived
   -> VideoRender::onVideoFrameRecevied
   -> 打印 hello
 ```

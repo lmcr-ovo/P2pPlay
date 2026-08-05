@@ -159,7 +159,7 @@ P2pSession::p2pReady
   -> VideoSenderPipeline::start
 
 VideoSenderPipeline::sampleReady(QByteArray)
-  -> MediaService::sendVideoFrame
+  -> MediaService::sendVideoSampleBytes
   -> P2pSession::sendMediaFrame
 ```
 
@@ -167,9 +167,9 @@ Guest：
 
 ```text
 P2pSession::mediaFrameReceived
-  -> MediaService::onMediaFrameReceived
+  -> MediaService::onUdpMediaFrameReceived
 
-MediaService::videoFrameReceived(QByteArray)
+MediaService::videoSampleBytesReceived(QByteArray)
   -> VideoReceiverPipeline::onVideoSampleBytesReceived(QByteArray)
 
 VideoReceiverPipeline::imageReady(QImage)

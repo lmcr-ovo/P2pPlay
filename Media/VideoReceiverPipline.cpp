@@ -13,6 +13,6 @@ VideoRecevierPipline::VideoRecevierPipline(QObject* parent)
             this, &VideoRecevierPipline::videoImageReady);
 }
 
-void VideoRecevierPipline::onVideoSampleBytesReady(const QByteArray& sampleBytes) {
+void VideoRecevierPipline::onVideoSampleBytesReceived(const QByteArray& sampleBytes) {
     emit videoSampleBytesReady(sampleBytes);
 }

@@ -19,6 +19,9 @@ void VideoEncoder::onVideoImageReady(const QImage &img) {
     switch (codecType_) {
         case VideoSampleCodecType::Jpeg : {
             QByteArray bytes = handleJpeg(img);
+            if (bytes.isEmpty()) {
+                return;
+            }
             emit videoSampleBytesReady(bytes);
             break;
         }
@@ -47,6 +50,11 @@ QByteArray VideoEncoder::handleJpeg(const QImage &img) {
     sample.codec = VideoSampleCodecType::Jpeg;
     sample.flags = 0;
     sample.data = bytes;
+
+    qDebug() << "send sample"
+             << sample.videoSeq
+             << sample.width << sample.height
+             << sample.data.size();
 
     return VideoSampleCodec::encode(sample);
 }

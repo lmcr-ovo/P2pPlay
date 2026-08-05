@@ -13,10 +13,7 @@ public:
     explicit VideoWidget(QWidget* parent);
 
 public slots:
-    void onVideoImage(const QImage& img);
-
-public:
-    void showFramePayload(const QByteArray &vFramePayload);
+    void onVideoImageReady(const QImage& img);
 
 protected:
     void paintEvent(QPaintEvent *event) override;

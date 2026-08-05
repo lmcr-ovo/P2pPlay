@@ -452,8 +452,8 @@ Host：
 ScreenCapturer
   -> JpegVideoEncoder / H264VideoEncoder
   -> VideoFrameCodec::encode
-  -> MediaService::sendVideoFrame
-  -> emit mediaFrameToSend(VideoFrame, payload)
+  -> MediaService::sendVideoSampleBytes
+  -> emit udpMediaFrameToSend(VideoFrame, payload)
   -> P2pSession::sendMediaFrame
   -> P2pUdpTransport::sendFrame(Media, VideoFrame, payload)
 ```
@@ -463,8 +463,8 @@ Guest：
 ```text
 P2pUdpTransport::frameReady
   -> P2pSession::mediaFrameReceived
-  -> MediaService::onMediaFrameReceived
-  -> MediaService::videoFrameReceived
+  -> MediaService::onUdpMediaFrameReceived
+  -> MediaService::videoSampleBytesReceived
   -> VideoFrameCodec::decode
   -> JpegVideoDecoder / H264VideoDecoder
   -> VideoRender / VideoWidget
@@ -735,7 +735,7 @@ private:
 接收流程：
 
 ```text
-MediaService::videoFrameReceived
+MediaService::videoSampleBytesReceived
   -> VideoDecoder::onVideoSampleBytesReceived
   -> emit imageReady(QImage)
   -> VideoWidget::setImage

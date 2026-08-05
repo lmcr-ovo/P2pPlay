@@ -14,7 +14,8 @@ VideoWidget::VideoWidget(QWidget* parent)
     setPalette(Qt::black);
 }
 
-void VideoWidget::onVideoImage(const QImage& img) {
+void VideoWidget::onVideoImageReady(const QImage& img) {
+    qDebug() << "paint image" << img.size();
     if (img.isNull()) {
         return;
     }

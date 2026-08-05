@@ -18,7 +18,7 @@ signals:
     void videoImageReady(const QImage& img);
 
 public slots:
-    void onVideoSampleBytesReceived(const QByteArray& bytes);
+    void onVideoSampleBytesReceived(const QByteArray& sampleBytes);
 
 private:
     void handleJpeg(VideoSample& sample);

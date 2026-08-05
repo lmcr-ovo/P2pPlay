@@ -17,7 +17,7 @@ public:
     void applyConfig(const AppConfig& config);
 
 signals:
-    void videoSampleBytesReady(const QByteArray& bytes);
+    void videoSampleBytesReady(const QByteArray& sampleBytes);
 
 public slots:
     void onVideoImageReady(const QImage& img);

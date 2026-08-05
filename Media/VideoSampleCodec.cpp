@@ -24,12 +24,12 @@ bool VideoSampleCodec::decode(const QByteArray& bytes,
                          VideoSample& vSample) {
     QDataStream stream(bytes);
     stream.setByteOrder(QDataStream::BigEndian);
+    quint8 codec = 0;
 
     quint32 videoSeq = 0;
     quint64 captureTimeStampMs = 0;
     quint16 width = 0;
     quint16 height = 0;
-    VideoSampleCodecType codec = VideoSampleCodecType::Unknown;
     quint32 flags = 0;
     QByteArray data;
 
@@ -48,7 +48,7 @@ bool VideoSampleCodec::decode(const QByteArray& bytes,
     vSample.captureTimeStampMs = captureTimeStampMs;
     vSample.width = width;
     vSample.height = height;
-    vSample.codec = codec;
+    vSample.codec = static_cast<VideoSampleCodecType>(codec);;
     vSample.flags = flags;
     vSample.data = bytes.mid(HeaderSize);
     return true;

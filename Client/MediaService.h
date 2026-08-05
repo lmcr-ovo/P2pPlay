@@ -28,24 +28,29 @@ public:
     bool isRunning() const;
 
 signals:
-    void mediaFrameToSend(UdpFrameType type, const QByteArray& payload);
+    //
 
-    void videoFrameReceived(const QByteArray& payload);
-    void audioFrameReceived(const QByteArray& payload);
-    void inputEventReceived(const QByteArray& payload);
-    void keyFrameRequestReceived(const QByteArray& payload);
+
+    //
+
+    void udpMediaFrameToSend(UdpFrameType type, const QByteArray& payload);
+
+    void videoSampleBytesReceived(const QByteArray& sampleBytes);
+    void audioSampleBytesReceived(const QByteArray& sampleBytes);
+    void inputCommandReceived(const QByteArray& commandBytes);
+    void keyFrameRequestReceived(const QByteArray& requestByes);
 
     void logReceived(const QString& message);
     void errorOccurred(const QString& reason);
 
 public slots:
     void onP2pReady(const QHostAddress& address, quint16 port);
-    void onMediaFrameReceived(const UdpFrame& frame);
+    void onUdpMediaFrameReceived(const UdpFrame& frame);
 
-    bool sendVideoFrame(const QByteArray& payload);
-    bool sendAudioFrame(const QByteArray& payload);
-    bool sendInputEvent(const QByteArray& payload);
-    bool sendKeyFrameRequest(const QByteArray& payload);
+    bool sendVideoSampleBytes(const QByteArray& sampleBytes);
+    bool sendAudioSampleBytes(const QByteArray& sampleBytes);
+    bool sendInputCommand(const QByteArray& commandBytes);
+    bool sendKeyFrameRequest(const QByteArray& requestBytes);
 
 private:
     bool canSend(UdpFrameType type) const;

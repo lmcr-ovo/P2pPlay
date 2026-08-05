@@ -228,9 +228,9 @@ P2pSession::p2pReady
 
 ```text
 Host 的屏幕采集模块
-  -> MediaService::sendVideoFrame(payload)
+  -> MediaService::sendVideoSampleBytes(payload)
   -> MediaService 检查当前 role 是不是 Host
-  -> emit mediaFrameToSend(VideoFrame, payload)
+  -> emit udpMediaFrameToSend(VideoFrame, payload)
   -> P2pSession::sendMediaFrame(VideoFrame, payload)
   -> P2pUdpTransport 发 UDP
 ```
@@ -240,9 +240,9 @@ Host 的屏幕采集模块
 ```text
 P2pUdpTransport 收到 UDP
   -> P2pSession::mediaFrameReceived(frame)
-  -> MediaService::onMediaFrameReceived(frame)
+  -> MediaService::onUdpMediaFrameReceived(frame)
   -> MediaService 根据 frame.type 分发
-  -> videoFrameReceived(payload)
+  -> videoSampleBytesReceived(payload)
   -> 视频渲染模块
 ```
 
@@ -253,7 +253,7 @@ Guest 捕获鼠标键盘
   -> MediaService::sendInputEvent(payload)
   -> P2pSession
   -> Host 收到 InputEvent
-  -> MediaService::inputEventReceived
+  -> MediaService::inputCommandReceived
   -> 输入执行模块
 ```
 

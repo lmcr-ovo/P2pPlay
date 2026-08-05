@@ -19,6 +19,7 @@ target_link_libraries(Client PUBLIC
         Common
         Tcp
         Udp
-        Media)
+        Media
+        )
 
 add_subdirectory(test)

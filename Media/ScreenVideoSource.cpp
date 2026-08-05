@@ -11,11 +11,13 @@ ScreenVideoSource::ScreenVideoSource(QObject* parent)
     : QObject(parent) {
     connect(&timer_, &QTimer::timeout, this, [this] {
         screenShot();
-    })
+    });
 }
 
 void ScreenVideoSource::applyConfig(const AppConfig &config) {
     intervalMs_ = config.video.frameIntervalMs();
+    width_ = config.video.width;
+    height_ = config.video.height;
 }
 
 void ScreenVideoSource::start() {
@@ -34,5 +36,12 @@ void ScreenVideoSource::screenShot() {
     QScreen* screen = QGuiApplication::primaryScreen();
     QPixmap pixmap = screen->grabWindow(0);
     QImage img = pixmap.toImage();
-    emit videoImageReady(img);
+
+    QImage scaled = img.scaled(
+            width_,
+            height_,
+            Qt::KeepAspectRatio,
+            Qt::FastTransformation);
+
+    emit videoImageReady(scaled);
 }
