@@ -7,6 +7,7 @@
 
 #include <QString>
 #include <QHostAddress>
+#include "VideoSample.h"
 
 struct ServerConfig {
     QHostAddress tcpAddress = QHostAddress(QHostAddress::LocalHost);
@@ -27,14 +28,15 @@ struct P2pConfig {
 };
 
 struct VideoConfig {
-    int fps = 100;
+    quint16 fps = 100;
 
-    int width = 1280;
-    int height = 720;
+    quint16 width = 1280;
+    quint16 height = 720;
 
-    int jpegQuality = 50;
+    quint16 jpegQuality = 50;
+    VideoSampleCodecType codecType = VideoSampleCodecType::Jpeg;
 
-    int frameIntervalMs() const {
+    quint16 frameIntervalMs() const {
         return fps > 0 ? 1000 / fps : 20;
     }
 };

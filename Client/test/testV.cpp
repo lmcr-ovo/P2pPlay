@@ -1,4 +1,4 @@
-#include <QCoreApplication>
+#include <QApplication>
 #include <QDebug>
 #include <QHostAddress>
 #include <QTimer>
@@ -27,7 +27,7 @@ quint16 toPort(const QStringList& args, int index, quint16 defaultValue) {
 }
 
 int main(int argc, char* argv[]) {
-    QCoreApplication app(argc, argv);
+    QApplication app(argc, argv);
     const QStringList args = app.arguments();
 
     if (args.size() < 3) {

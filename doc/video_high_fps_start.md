@@ -347,7 +347,7 @@ GPU 采集 texture
 建议定义：
 
 ```cpp
-enum class VideoCodecType : quint16 {
+enum class VideoSampleCodecType : quint16 {
     Unknown = 0,
     Jpeg = 1,
     H264 = 2,
@@ -363,7 +363,7 @@ struct VideoFramePayload {
     quint16 height = 0;
 
     quint16 fps = 0;
-    VideoCodecType codec = VideoCodecType::Unknown;
+    VideoSampleCodecType codec = VideoSampleCodecType::Unknown;
 
     bool keyFrame = false;
     quint32 flags = 0;
@@ -736,7 +736,7 @@ private:
 
 ```text
 MediaService::videoFrameReceived
-  -> VideoDecoder::onVideoFrameReceived
+  -> VideoDecoder::onVideoSampleBytesReceived
   -> emit imageReady(QImage)
   -> VideoWidget::setImage
   -> update()
