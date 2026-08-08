@@ -1,5 +1,8 @@
 #include "MediaService.h"
 
+#include "VideoSampleCodec.h"
+#include "TraceManager.h"
+
 MediaService::MediaService(QObject* parent)
         : QObject(parent) {
 }
@@ -49,6 +52,14 @@ void MediaService::onUdpMediaFrameReceived(const UdpFrame& frame) {
 
     switch (frame.frameType) {
         case UdpFrameType::VideoFrame:
+            {
+                VideoSample sample;
+                if (VideoSampleCodec::decode(frame.payload, sample)) {
+                    TraceManager::instance().record(sample.videoSeq,
+                                                    TraceStage::ReassembleEnd,
+                                                    TraceManager::nowUs());
+                }
+            }
             emit videoSampleBytesReceived(frame.payload);
             break;
 
@@ -80,7 +91,14 @@ bool MediaService::sendVideoSampleBytes(const QByteArray& payload) {
         return false;
     }
 
+    VideoSample sample;
     emit udpMediaFrameToSend(UdpFrameType::VideoFrame, payload);
+
+    if (VideoSampleCodec::decode(payload, sample)) {
+        TraceManager::instance().record(sample.videoSeq,
+                                        TraceStage::SendEnd,
+                                        TraceManager::nowUs());
+    }
     return true;
 }
 

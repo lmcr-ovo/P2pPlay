@@ -9,6 +9,7 @@
 #include <QTimer>
 #include "AppConfig.h"
 #include <QImage>
+#include "TraceManager.h"
 
 class ScreenVideoSource : public QObject {
     Q_OBJECT
@@ -20,13 +21,15 @@ public:
     void stop();
 
 signals:
-    void videoImageReady(const QImage& img);
+    void videoImageReady(const QImage& img,
+            quint32 sampleSeq);
 
 private:
     void screenShot();
 
 private:
     QTimer timer_;
+    quint32 nextSampleSeq = 0;
     quint16 intervalMs_ = 50;
     quint16 width_ = 640;
     quint16 height_ = 360;

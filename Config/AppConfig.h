@@ -28,7 +28,7 @@ struct P2pConfig {
 };
 
 struct VideoConfig {
-    quint16 fps = 60;
+    quint16 fps = 15;
 
     quint16 width = 1280;
     quint16 height = 720;

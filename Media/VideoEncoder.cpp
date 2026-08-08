@@ -15,10 +15,11 @@ void VideoEncoder::applyConfig(const AppConfig &config) {
     jpegQuality_ = config.video.jpegQuality;
 }
 
-void VideoEncoder::onVideoImageReady(const QImage &img) {
+void VideoEncoder::onVideoImageReady(const QImage &img,
+        quint32 sampleSeq) {
     switch (codecType_) {
         case VideoSampleCodecType::Jpeg : {
-            QByteArray bytes = handleJpeg(img);
+            QByteArray bytes = handleJpeg(img, sampleSeq);
             if (bytes.isEmpty()) {
                 return;
             }
@@ -30,7 +31,8 @@ void VideoEncoder::onVideoImageReady(const QImage &img) {
     }
 }
 
-QByteArray VideoEncoder::handleJpeg(const QImage &img) {
+QByteArray VideoEncoder::handleJpeg(const QImage &img,
+        quint32 sampleSeq) {
     QByteArray bytes;
     QBuffer buffer(&bytes);
 
@@ -41,8 +43,9 @@ QByteArray VideoEncoder::handleJpeg(const QImage &img) {
     if (!img.save(&buffer, "JPG", jpegQuality_)) {
         return QByteArray();
     }
+    TraceManager::instance().record(sampleSeq, TraceStage::EncodeEnd, TraceManager::nowUs());
     VideoSample sample;
-    sample.videoSeq = nextVideoSeq_++;
+    sample.videoSeq = sampleSeq;
     sample.captureTimeStampMs =
             static_cast<quint64>(QDateTime::currentMSecsSinceEpoch());
     sample.width = static_cast<quint16>(img.width());
@@ -51,11 +54,9 @@ QByteArray VideoEncoder::handleJpeg(const QImage &img) {
     sample.flags = 0;
     sample.data = bytes;
 
-    qDebug() << "send sample"
-             << sample.videoSeq
-             << sample.width << sample.height
-             << sample.data.size();
+    const QByteArray encoded = VideoSampleCodec::encode(sample);
+    TraceManager::instance().record(sampleSeq, TraceStage::PackEnd, TraceManager::nowUs());
 
-    return VideoSampleCodec::encode(sample);
+    return encoded;
 }
 

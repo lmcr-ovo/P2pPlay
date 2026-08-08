@@ -4,7 +4,6 @@
 #include <QGuiApplication>
 #include <QScreen>
 #include <QPixmap>
-#include <QImage>
 #include "ScreenVideoSource.h"
 
 ScreenVideoSource::ScreenVideoSource(QObject* parent)
@@ -43,5 +42,6 @@ void ScreenVideoSource::screenShot() {
             Qt::KeepAspectRatio,
             Qt::FastTransformation);
 
-    emit videoImageReady(scaled);
+    TraceManager::instance().record(nextSampleSeq, TraceStage::CaptureEnd, TraceManager::nowUs());
+    emit videoImageReady(scaled, nextSampleSeq++);
 }

@@ -9,6 +9,7 @@
 #include <QImage>
 #include "AppConfig.h"
 #include "VideoSample.h"
+#include "TraceManager.h"
 
 class VideoEncoder : public QObject {
     Q_OBJECT
@@ -20,8 +21,9 @@ signals:
     void videoSampleBytesReady(const QByteArray& sampleBytes);
 
 public slots:
-    void onVideoImageReady(const QImage& img);
-    QByteArray handleJpeg(const QImage& img);
+    void onVideoImageReady(const QImage &img,
+            quint32 sampleSeq);
+    QByteArray handleJpeg(const QImage& img, quint32 sampleSeq);
 
 private:
     VideoSampleCodecType codecType_ = VideoSampleCodecType::Jpeg;

@@ -15,7 +15,7 @@ public:
 
 signals:
     void videoSampleBytesReady(const QByteArray& sampleBytes);
-    void videoImageReady(const QImage& img);
+    void videoImageReady(const QImage& img, quint32 sampleId);
 
 public slots:
     void onVideoSampleBytesReceived(const QByteArray& sampleBytes);

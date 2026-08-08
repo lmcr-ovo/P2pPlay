@@ -20,4 +20,5 @@ target_link_libraries(Media PUBLIC
         Qt5::Gui
         Qt5::Widgets
         Tcp
-        Config)
+        Config
+        Logger)

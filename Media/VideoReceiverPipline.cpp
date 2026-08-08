@@ -7,7 +7,7 @@
 VideoRecevierPipline::VideoRecevierPipline(QObject* parent)
     : QObject(parent),
     decoder_(this) {
-    connect(this, &VideoRecevierPipline::videoSampleBytesReady,
+connect(this, &VideoRecevierPipline::videoSampleBytesReady,
             &decoder_, &VideoDecoder::onVideoSampleBytesReceived);
     connect(&decoder_, &VideoDecoder::videoImageReady,
             this, &VideoRecevierPipline::videoImageReady);

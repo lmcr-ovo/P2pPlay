@@ -3,6 +3,7 @@
 //
 
 #include "ClientApp.h"
+#include "TraceManager.h"
 
 ClientApp::ClientApp()
     : signalingClient_(this),
@@ -14,6 +15,7 @@ ClientApp::ClientApp()
       videoSenderPipeline_(this),
       videoRecevierPipline_(this),
       videoWidget_(nullptr) {
+    TraceManager::instance();
     connectCommonSignals();
 }
 

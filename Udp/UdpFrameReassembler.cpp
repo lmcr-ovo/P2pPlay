@@ -59,6 +59,7 @@ void UdpFrameReassembler::pushPacket(const UdpPacket& packet,
  */
 void UdpFrameReassembler::emitCompleteFrame(const FrameBuffer& buffer) {
     QByteArray payload;
+
     for (auto it = buffer.fragments.cbegin(); it != buffer.fragments.cend(); ++it) {
         payload.append(it.value());
     }

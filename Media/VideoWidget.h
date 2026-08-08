@@ -6,6 +6,8 @@
 #define P2PPLAY_VIDEOWIDGET_H
 
 #include <QWidget>
+#include <QTimer>
+#include "TraceManager.h"
 
 class VideoWidget : public QWidget {
     Q_OBJECT
@@ -13,13 +15,20 @@ public:
     explicit VideoWidget(QWidget* parent);
 
 public slots:
-    void onVideoImageReady(const QImage& img);
+    void onVideoImageReady(const QImage& img, quint32 sampleId);
 
 protected:
     void paintEvent(QPaintEvent *event) override;
 
 private:
+    void refreshFrame();
+
+private:
+    QTimer refreshTimer_;
     QImage image_;
+    quint32 currentSampleId_ = 0;
+    quint32 paintedSampleId_ = 0;
+    bool frameDirty_ = false;
 };
 
 

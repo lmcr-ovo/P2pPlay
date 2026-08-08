@@ -8,6 +8,7 @@
 #include <QObject>
 #include <QImage>
 #include "VideoSample.h"
+#include "TraceManager.h"
 
 class VideoDecoder : public QObject {
     Q_OBJECT
@@ -15,7 +16,7 @@ public:
     explicit VideoDecoder(QObject* parent);
 
 signals:
-    void videoImageReady(const QImage& img);
+    void videoImageReady(const QImage& img, quint32 sampleId);
 
 public slots:
     void onVideoSampleBytesReceived(const QByteArray& sampleBytes);
