@@ -12,6 +12,7 @@ class VideoSampleCodec {
 public:
     static QByteArray encode(const VideoSample& vSample);
     static bool decode(const QByteArray& bytes, VideoSample& vSample);
+    static bool peekVideoSeq(const QByteArray& bytes, quint32& videoSeq);
 
 private:
     static constexpr int HeaderSize =

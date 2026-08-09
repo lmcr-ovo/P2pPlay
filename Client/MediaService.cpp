@@ -53,9 +53,9 @@ void MediaService::onUdpMediaFrameReceived(const UdpFrame& frame) {
     switch (frame.frameType) {
         case UdpFrameType::VideoFrame:
             {
-                VideoSample sample;
-                if (VideoSampleCodec::decode(frame.payload, sample)) {
-                    TraceManager::instance().record(sample.videoSeq,
+                quint32 sampleId = 0;
+                if (VideoSampleCodec::peekVideoSeq(frame.payload, sampleId)) {
+                    TraceManager::instance().record(sampleId,
                                                     TraceStage::ReassembleEnd,
                                                     TraceManager::nowUs());
                 }
@@ -91,14 +91,14 @@ bool MediaService::sendVideoSampleBytes(const QByteArray& payload) {
         return false;
     }
 
-    VideoSample sample;
-    emit udpMediaFrameToSend(UdpFrameType::VideoFrame, payload);
-
-    if (VideoSampleCodec::decode(payload, sample)) {
-        TraceManager::instance().record(sample.videoSeq,
+    quint32 sampleId = 0;
+    if (VideoSampleCodec::peekVideoSeq(payload, sampleId)) {
+        TraceManager::instance().record(sampleId,
                                         TraceStage::SendEnd,
                                         TraceManager::nowUs());
     }
+
+    emit udpMediaFrameToSend(UdpFrameType::VideoFrame, payload);
     return true;
 }
 

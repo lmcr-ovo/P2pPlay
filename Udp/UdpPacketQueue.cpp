@@ -17,7 +17,7 @@ void UdpPacketQueue::setTick(int packetsPerTick, int flushIntervalMs) {
 
 void UdpPacketQueue::onPacketsReadyToSend(QQueue<UdpPacket> packets,
         const QHostAddress& peerAddress, quint16 PeerPort) {
-    if (!packets_.isEmpty()) return;
+    //if (!packets_.isEmpty()) return;
     while (!packets.isEmpty()) {
         PendingUdpPacket pending;
         pending.packet = packets.dequeue();

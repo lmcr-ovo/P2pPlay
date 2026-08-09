@@ -35,11 +35,5 @@ void VideoDecoder::handleJpeg(VideoSample& sample) {
                                     TraceStage::DecodeEnd,
                                     TraceManager::nowUs());
 
-    qDebug() << "recv sample"
-             << sample.videoSeq
-             << sample.width << sample.height
-             << sample.data.size()
-             << QDateTime::currentMSecsSinceEpoch() - sample.captureTimeStampMs << "ms";
-
     emit videoImageReady(img, sample.videoSeq);
 }

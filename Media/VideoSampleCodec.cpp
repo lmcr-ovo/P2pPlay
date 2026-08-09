@@ -53,3 +53,15 @@ bool VideoSampleCodec::decode(const QByteArray& bytes,
     vSample.data = bytes.mid(HeaderSize);
     return true;
 }
+
+bool VideoSampleCodec::peekVideoSeq(const QByteArray& bytes, quint32& videoSeq) {
+    if (bytes.size() < static_cast<int>(sizeof(quint32))) {
+        return false;
+    }
+
+    QDataStream stream(bytes);
+    stream.setByteOrder(QDataStream::BigEndian);
+
+    stream >> videoSeq;
+    return stream.status() == QDataStream::Ok;
+}

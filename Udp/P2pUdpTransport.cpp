@@ -20,8 +20,8 @@ P2pUdpTransport::P2pUdpTransport(QUdpSocket* sock, QObject* parent)
     connect(&reassembler_, &UdpFrameReassembler::frameReady,
             this, &P2pUdpTransport::frameReady);
 
-    connect(&reassembler_, &UdpFrameReassembler::frameDropped,
-            this, &P2pUdpTransport::frameDropped);
+    //connect(&reassembler_, &UdpFrameReassembler::frameDropped,
+            //this, &P2pUdpTransport::frameDropped);
     connect(sock_,
             QOverload<QAbstractSocket::SocketError>::of(&QUdpSocket::error),
             this, [this](QAbstractSocket::SocketError err) {

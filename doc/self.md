@@ -24,3 +24,6 @@ operator
 connection可以断开
 接口
 update合并积压
+深浅拷贝
+日志
+迭代器

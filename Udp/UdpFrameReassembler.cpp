@@ -18,19 +18,68 @@ void UdpFrameReassembler::pushPacket(const UdpPacket& packet,
         return;
     }
 
-    FrameKey key;
-    key.senderAddress = senderAddress;
-    key.senderPort = senderPort;
-    key.frameSeq = packet.frameSeq;
+    PeerKey key = PeerKey::makePeerKey(senderAddress, senderPort);
+    if (!peers_.contains(key)) {
+        PeerState state(key);
+        peers_.insert(key, state);
+    }
 
-    FrameBuffer &buffer = pendingFrame_[key];
-    if (buffer.fragments.isEmpty()) {
+    auto it = peers_.find(key);
+    if (it == peers_.end()) {
+        it = peers_.insert(key, PeerState(key));
+    }
+    PeerState& peerState = it.value();
+
+    // 如果packet是最新的
+    if (!peerState.hasLatestSeenSeq || packet.frameSeq > peerState.latestSeenSeq) {
+        peerState.latestSeenSeq = packet.frameSeq;
+        peerState.hasLatestSeenSeq = true;
+    }
+
+    // 当前packet太旧直接丢弃
+    if (peerState.hasLatestSeenSeq
+        && peerState.latestSeenSeq > PeerState::MaxFrameLag
+        && packet.frameSeq < peerState.latestSeenSeq - PeerState::MaxFrameLag) {
+        return;
+    }
+
+    // 清理旧帧
+    const quint32 minAllowedSeq = peerState.latestSeenSeq > PeerState::MaxFrameLag
+                                  ? peerState.latestSeenSeq - PeerState::MaxFrameLag
+                                  : 0;
+
+    while (!peerState.pendingFrame_.isEmpty()) {
+        auto it = peerState.pendingFrame_.begin();
+
+        if (it.key() >= minAllowedSeq) {
+            break;
+        }
+
+        peerState.pendingFrame_.erase(it);
+    }
+
+    // 数量上限
+    while (peerState.pendingFrame_.size() > PeerState::MaxPendingFramesPerPeer) {
+        auto it = peerState.pendingFrame_.begin();
+        peerState.pendingFrame_.erase(it);
+    }
+
+    // 没有收过该帧
+    if (!peerState.pendingFrame_.contains(packet.frameSeq)) {
+        FrameBuffer buffer;
         buffer.channelType = packet.channel;
         buffer.frameType = packet.type;
         buffer.senderAddress = senderAddress;
         buffer.senderPort = senderPort;
+        buffer.frameSeq = packet.frameSeq;
         buffer.fragmentCount = packet.fragmentCount;
+        buffer.payload.resize(buffer.fragmentCount
+        * static_cast<int>(UdpPacket::MaxPayloadSize));
+        buffer.received.resize(packet.fragmentCount);
+        peerState.pendingFrame_.insert(packet.frameSeq, buffer);
     }
+
+    FrameBuffer& buffer = peerState.pendingFrame_[packet.frameSeq];
 
     if (buffer.channelType != packet.channel
         || buffer.frameType != packet.type
@@ -40,58 +89,35 @@ void UdpFrameReassembler::pushPacket(const UdpPacket& packet,
         return;
     }
 
-    if (buffer.fragments.contains(packet.fragmentSeq)) {
+    if (buffer.received.testBit(packet.fragmentSeq)) {
         return;
     }
+    const int offset = packet.fragmentSeq * UdpPacket::MaxPayloadSize;
+    memcpy(buffer.payload.data() + offset,
+            packet.payload.constData(),
+            packet.payload.size());
+    buffer.received.setBit(packet.fragmentSeq);
+    buffer.receivedCount += 1;
 
-    buffer.fragments.insert(packet.fragmentSeq, packet.payload);
-    if (!buffer.isComplete()) {
-        return;
+    // 收到最后一个分片
+    if (packet.fragmentSeq == packet.fragmentCount - 1) {
+        buffer.totalSize = offset + packet.payload.size();
     }
 
-    emitCompleteFrame(buffer);
-    pendingFrame_.remove(key);
-    dropFramesOlderThan(senderAddress, senderPort, packet.frameSeq);
-}
+    // 收齐
+    if (buffer.isComplete() && buffer.totalSize > 0) {
 
-/*
- * 将接收到的packet合成为原始payload并打包为帧
- */
-void UdpFrameReassembler::emitCompleteFrame(const FrameBuffer& buffer) {
-    QByteArray payload;
+        buffer.payload.resize(buffer.totalSize);
 
-    for (auto it = buffer.fragments.cbegin(); it != buffer.fragments.cend(); ++it) {
-        payload.append(it.value());
-    }
-    UdpFrame frame;
+        UdpFrame frame;
+        frame.senderAddress = buffer.senderAddress;
+        frame.senderPort = buffer.senderPort;
+        frame.channelType = buffer.channelType;
+        frame.frameType = buffer.frameType;
+        frame.payload = buffer.payload;
 
-    //
-    frame.channelType = buffer.channelType;
-    frame.frameType = buffer.frameType;
-    frame.senderAddress = buffer.senderAddress;
-    frame.senderPort = buffer.senderPort;
-    frame.payload = payload;
-
-    emit frameReady(frame);
-}
-
-void UdpFrameReassembler::dropFramesOlderThan(const QHostAddress& senderAddress,
-        quint16 senderPort,
-        quint32 frameSeq
-        ) {
-    auto it = pendingFrame_.begin();
-
-    while (it != pendingFrame_.end()) {
-        const FrameKey key = it.key();
-
-        if (key.senderAddress == senderAddress
-            && key.senderPort == senderPort
-            && key.frameSeq < frameSeq) {
-            const quint32 droppedSeq = key.frameSeq;
-            it = pendingFrame_.erase(it);
-            emit frameDropped(droppedSeq);
-            continue;
-        }
-        ++it;
+        emit frameReady(frame);
+        peerState.pendingFrame_.remove(packet.frameSeq);
     }
 }
+

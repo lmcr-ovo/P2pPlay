@@ -8,27 +8,69 @@
 #include <QtCore>
 #include <QObject>
 #include <QHostAddress>
+#include <QHash>
 #include "UdpPacket.h"
 
-struct FrameKey {
+/*
+ * 每组ip port 的组合键
+ */
+struct PeerKey {
+    QString addressText;
+    quint16 port = 0;
+
+    bool operator==(const PeerKey& other) const {
+        return addressText == other.addressText
+            && port == other.port;
+    }
+
+    static PeerKey makePeerKey(const QHostAddress& address, quint16 port) {
+        PeerKey key;
+        key.addressText = address.toString();
+        key.port = port;
+        return key;
+    }
+};
+
+inline uint qHash(const PeerKey& key, uint seed = 0) {
+    uint h1 = qHash(key.addressText, seed);
+    uint h2 = qHash(key.port, h1);
+    return h2;
+}
+
+
+struct FrameBuffer {
+    UdpChannelType channelType = UdpChannelType::Unknown;
+    UdpFrameType frameType = UdpFrameType::Unknown;
+
     QHostAddress senderAddress;
     quint16 senderPort = 0;
+
     quint32 frameSeq = 0;
+    quint16 fragmentCount = 0;
 
-    bool operator<(const FrameKey& other) const {
-        const QString selfAddress = senderAddress.toString();
-        const QString otherAddress = other.senderAddress.toString();
+    QByteArray payload;
+    QBitArray received;
 
-        if (selfAddress != otherAddress) {
-            return selfAddress < otherAddress;
-        }
+    quint16 receivedCount = 0;
+    quint32 totalSize = 0;
 
-        if (senderPort != other.senderPort) {
-            return senderPort < other.senderPort;
-        }
-
-        return frameSeq < other.frameSeq;
+    bool isComplete() const {
+        return fragmentCount > 0
+            && receivedCount == fragmentCount;
     }
+};
+
+/*
+ * 管理每个peer的多个帧
+ */
+struct PeerState {
+    QMap<quint32, FrameBuffer> pendingFrame_;
+    PeerKey key_;
+    static const quint16 MaxFrameLag = 8;
+    static const quint16 MaxPendingFramesPerPeer = 16;
+    quint32 latestSeenSeq = 0;
+    bool hasLatestSeenSeq = false;
+    explicit PeerState(const PeerKey& key) : key_(key) {}
 };
 
 class UdpFrameReassembler : public QObject {
@@ -42,34 +84,8 @@ public:
 
 signals:
     void frameReady(const UdpFrame& frame);
-    void frameDropped(quint32 frameSeq);
-
 private:
-    struct FrameBuffer {
-        UdpChannelType channelType = UdpChannelType::Unknown;
-        UdpFrameType frameType = UdpFrameType::Unknown;
-
-        QHostAddress senderAddress;
-        quint16 senderPort = 0;
-
-        quint16 fragmentCount = 0;
-        QMap<quint16, QByteArray> fragments;
-
-        bool isComplete() const {
-            //return fragmentCount > 0 && fragmentCount == fragments.size();
-            return fragmentCount > 0
-                   && fragments.size() == static_cast<int>(fragmentCount);
-        }
-    };
-
-private:
-    void emitCompleteFrame(const FrameBuffer& buffer);
-    void dropFramesOlderThan(const QHostAddress& senderAddress,
-            quint16 senderPort,
-            quint32 frameSeq);
-
-private:
-    QMap<FrameKey, FrameBuffer> pendingFrame_;
+    QHash<PeerKey, PeerState> peers_;
 };
 
 
