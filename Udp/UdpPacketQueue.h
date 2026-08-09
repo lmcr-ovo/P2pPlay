@@ -32,9 +32,17 @@ private slots:
     void sendPacketPerTick();
 
 private:
+    QQueue<PendingUdpPacket> buildPendingFrame(QQueue<UdpPacket>& packets,
+                                               const QHostAddress& peerAddress,
+                                               quint16 peerPort) const;
+    void promotePendingFrame();
+
+private:
     QUdpSocket* sock_;
     QTimer timer_;
-    QQueue<PendingUdpPacket> packets_;
+    QQueue<PendingUdpPacket> currentPackets_;
+    QQueue<PendingUdpPacket> pendingLatestPackets_;
+    bool hasPendingLatestPackets_ = false;
     int packetsPerTick_ = 32;
     int flushIntervalMs_ = 1;
 };

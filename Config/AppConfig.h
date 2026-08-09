@@ -23,12 +23,12 @@ struct P2pConfig {
     quint16 punchPortRange = 32;
     int punchIntervalMs = 200;
 
-    int udpPacketsPerTick = 32;
+    int udpPacketsPerTick = 1000;
     int udpFlushIntervalMs = 1;
 };
 
 struct VideoConfig {
-    quint16 fps = 60;
+    quint16 fps = 100;
 
     quint16 width = 1280;
     quint16 height = 720;

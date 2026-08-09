@@ -15,15 +15,40 @@ void UdpPacketQueue::setTick(int packetsPerTick, int flushIntervalMs) {
     flushIntervalMs_ = flushIntervalMs;
 }
 
-void UdpPacketQueue::onPacketsReadyToSend(QQueue<UdpPacket> packets,
-        const QHostAddress& peerAddress, quint16 PeerPort) {
-    //if (!packets_.isEmpty()) return;
+QQueue<PendingUdpPacket> UdpPacketQueue::buildPendingFrame(
+        QQueue<UdpPacket>& packets,
+        const QHostAddress& peerAddress,
+        quint16 peerPort) const {
+    QQueue<PendingUdpPacket> framePackets;
+    framePackets.reserve(packets.size());
+
     while (!packets.isEmpty()) {
         PendingUdpPacket pending;
         pending.packet = packets.dequeue();
         pending.address = peerAddress;
-        pending.port = PeerPort;
-        packets_.enqueue(pending);
+        pending.port = peerPort;
+        framePackets.enqueue(pending);
+    }
+
+    return framePackets;
+}
+
+void UdpPacketQueue::onPacketsReadyToSend(QQueue<UdpPacket> packets,
+        const QHostAddress& peerAddress, quint16 PeerPort) {
+    QQueue<PendingUdpPacket> framePackets = buildPendingFrame(
+            packets,
+            peerAddress,
+            PeerPort);
+
+    if (framePackets.isEmpty()) {
+        return;
+    }
+
+    if (currentPackets_.isEmpty()) {
+        currentPackets_ = std::move(framePackets);
+    } else {
+        pendingLatestPackets_ = std::move(framePackets);
+        hasPendingLatestPackets_ = true;
     }
 
     if (!timer_.isActive()) {
@@ -31,11 +56,21 @@ void UdpPacketQueue::onPacketsReadyToSend(QQueue<UdpPacket> packets,
     }
 }
 
+void UdpPacketQueue::promotePendingFrame() {
+    if (!hasPendingLatestPackets_) {
+        return;
+    }
+
+    currentPackets_ = std::move(pendingLatestPackets_);
+    pendingLatestPackets_.clear();
+    hasPendingLatestPackets_ = false;
+}
+
 void UdpPacketQueue::sendPacketPerTick() {
     int sentCount = 0;
 
-    while (!packets_.isEmpty() && sentCount < packetsPerTick_) {
-        const PendingUdpPacket pending = packets_.dequeue();
+    while (!currentPackets_.isEmpty() && sentCount < packetsPerTick_) {
+        const PendingUdpPacket pending = currentPackets_.dequeue();
         const QByteArray bytes = UdpPacketCodec::encode(pending.packet);
 
         const qint64 written = sock_->writeDatagram(
@@ -49,8 +84,13 @@ void UdpPacketQueue::sendPacketPerTick() {
         ++sentCount;
     }
 
-    if (packets_.isEmpty()) {
-        timer_.stop();
+    if (!currentPackets_.isEmpty()) {
         return;
+    }
+
+    promotePendingFrame();
+
+    if (currentPackets_.isEmpty()) {
+        timer_.stop();
     }
 }
