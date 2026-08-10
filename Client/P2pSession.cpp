@@ -7,284 +7,129 @@
 #include "UdpControlPayloadCodec.h"
 
 P2pSession::P2pSession(QObject* parent)
-    : QObject(parent),
-    sock_(this),
-    transport_(&sock_, this),
-    punchTimer_(this) {
+    : QObject(parent) {
+    qRegisterMetaType<QHostAddress>("QHostAddress");
+    qRegisterMetaType<UdpFrame>("UdpFrame");
+    qRegisterMetaType<UdpFrameType>("UdpFrameType");
+    qRegisterMetaType<SignalingMessage>("SignalingMessage");
 
-    transport_.setPeerFilterEnabled(false);
+    thread_ = new QThread(this);
+    worker_ = new P2pSessionWorker;
+    worker_->moveToThread(thread_);
 
-    connect(&transport_, &P2pUdpTransport::frameReady,
-            this, &P2pSession::onFrameReady);
-    connect(&transport_, &P2pUdpTransport::errorOccurred,
+    connect(thread_, &QThread::finished,
+            worker_, &QObject::deleteLater);
+    connect(worker_, &P2pSessionWorker::p2pReady,
+            this, &P2pSession::p2pReady);
+    connect(worker_, &P2pSessionWorker::mediaFrameReceived,
+            this, &P2pSession::mediaFrameReceived);
+    connect(worker_, &P2pSessionWorker::errorOccurred,
             this, &P2pSession::errorOccurred);
-    connect(&punchTimer_, &QTimer::timeout,
-            this, &P2pSession::sendPunch);
-    punchTimer_.setInterval(200);
+    connect(worker_, &P2pSessionWorker::logReceived,
+            this, &P2pSession::logReceived);
+
+    thread_->start();
+}
+
+P2pSession::~P2pSession() {
+    thread_->quit();
+    thread_->wait();
+    worker_ = nullptr;
 }
 
 void P2pSession::applyConfig(const P2pConfig &config) {
-    punchPortRange_ = config.punchPortRange;
-    punchTimer_.setInterval(config.punchIntervalMs);
+    P2pSessionWorker* worker = worker_;
 
-    transport_.setTick(config.udpPacketsPerTick,
-            config.udpFlushIntervalMs);
+    QMetaObject::invokeMethod(
+            worker,
+            [worker, config] {
+                worker->applyConfig(config);
+            },
+            Qt::QueuedConnection
+            );
 }
 
 bool P2pSession::bind(quint16 localPort) {
-    if (localPort == 0) {
-        emit errorOccurred("invalid local udp port");
-        return false;
-    }
-
-    if (!sock_.bind(QHostAddress::AnyIPv4, localPort)) {
-        emit errorOccurred(sock_.errorString());
-        return false;
-    }
-    return true;
+    bool result = false;
+    P2pSessionWorker* worker = worker_;
+    QMetaObject::invokeMethod(
+            worker,
+            [worker, localPort, &result] {
+                result = worker->bind(localPort);
+            },
+            Qt::BlockingQueuedConnection
+            );
+    return result;
 }
 
 void P2pSession::setClientInfo(const QString &roomId, const QString &clientId) {
-    roomId_ = roomId;
-    clientId_ = clientId;
+    P2pSessionWorker* worker = worker_;
+
+    QMetaObject::invokeMethod(
+            worker,
+            [worker, roomId, clientId] {
+                worker->setClientInfo(roomId, clientId);
+            },
+            Qt::QueuedConnection
+            );
 }
 
 void P2pSession::setServerUdpEndpoint(const QHostAddress &address, quint16 port) {
-    serverUdpAddress_ = address;
-    serverUdpPort_ =  port;
+    P2pSessionWorker* worker = worker_;
+
+    QMetaObject::invokeMethod(
+            worker,
+            [worker, address, port] {
+                worker->setServerUdpEndpoint(address, port);
+            },
+            Qt::QueuedConnection
+            );
 }
 
 void P2pSession::setPunchPortRange(quint16 range) {
-    punchPortRange_ = range;
+    P2pSessionWorker* worker = worker_;
+
+    QMetaObject::invokeMethod(
+            worker,
+            [worker, range] {
+                worker->setPunchPortRange(range);
+            },
+            Qt::QueuedConnection
+            );
 }
 
 void P2pSession::onProbePermitted(const SignalingMessage &message) {
-    if (!message.success) {
-        emit errorOccurred(message.reason);
-        return;
-    }
+    P2pSessionWorker* worker = worker_;
 
-    if (!message.roomId.isEmpty()) {
-        roomId_ = message.roomId;
-    }
-    sendProbe();
+    QMetaObject::invokeMethod(
+            worker,
+            [worker, message] {
+                worker->onProbePermitted(message);
+            },
+            Qt::QueuedConnection
+            );
 }
 
 void P2pSession::onPeerEndpoint(const SignalingMessage &message) {
-    if (!message.success) {
-        emit errorOccurred(message.reason);
-        return;
-    }
+    P2pSessionWorker* worker = worker_;
 
-    if (message.endpointAddress.isNull() || message.endpointPort == 0) {
-        emit errorOccurred("invalid peer endpoint");
-        return;
-    }
-
-    peerAddress_ = message.endpointAddress;
-    peerPort_ = message.endpointPort;
-
-    transport_.setPeerEndpoint(peerAddress_, peerPort_);
-    transport_.setPeerFilterEnabled(false);
-
-    //debug
-    peerClientId_ = message.clientId;
-
-    emit logReceived(QString("peer endpoint: %1:%2")
-                                .arg(peerAddress_.toString())
-                                .arg(peerPort_));
-
-    sendPunch();
-
-    if (!punchTimer_.isActive()) {
-        punchTimer_.start();
-    }
-}
-
-void P2pSession::sendProbe() {
-    if (roomId_.isEmpty() || clientId_.isEmpty()) {
-        emit errorOccurred("room id or client id is null");
-        return;
-    }
-
-    if (serverUdpAddress_.isNull() || serverUdpPort_ == 0) {
-        emit errorOccurred("server udp endpoint is not set");
-        return;
-    }
-
-    UdpProbePayload payload;
-    payload.roomId = roomId_;
-    payload.clientId = clientId_;
-
-    const bool ok = transport_.sendFrameTo(
-            serverUdpAddress_,
-            serverUdpPort_,
-            UdpChannelType::Control,
-            UdpFrameType::Probe,
-            UdpControlPayloadCodec::encodeProbe(payload)
+    QMetaObject::invokeMethod(
+            worker,
+            [worker, message] {
+                worker->onPeerEndpoint(message);
+            },
+            Qt::QueuedConnection
             );
-
-    if (!ok) {
-        emit errorOccurred("send udp probe failed");
-        return;
-    }
-
-    emit logReceived("udp probe sent");
 }
 
-void P2pSession::sendPunch() {
-    if (p2pReady_) {
-        punchTimer_.stop();
-        return;
-    }
+void P2pSession::sendMediaFrame(UdpFrameType type, const QByteArray &payload) {
+    P2pSessionWorker* worker = worker_;
 
-    if (peerAddress_.isNull() || peerPort_ == 0) {
-        return;
-    }
-
-    UdpPunchPayload payload;
-    payload.roomId = roomId_;
-    payload.clientId = clientId_;
-
-    const QByteArray bytes = UdpControlPayloadCodec::encodePunch(payload);
-    const QList<quint16> ports = punchCandidatePorts();
-
-    for (quint16 port : ports) {
-        transport_.sendFrameTo(
-                peerAddress_,
-                port,
-                UdpChannelType::Control,
-                UdpFrameType::Punch,
-                bytes
-                );
-    }
-}
-
-QList<quint16> P2pSession::punchCandidatePorts() const {
-    QList<quint16> ports;
-
-    if (peerPort_ == 0) {
-        return ports;
-    }
-
-    ports.append(peerPort_);
-
-    for (quint16 offset = 1; offset <= punchPortRange_; ++offset) {
-        if (peerPort_ > offset) {
-            ports.append(static_cast<quint16>(peerPort_ - offset));
-        }
-
-        const quint32 upper = static_cast<quint32>(peerPort_) + offset;
-        if (upper <= 65535) {
-            ports.append(static_cast<quint16>(upper));
-        }
-    }
-
-    return ports;
-}
-
-void P2pSession::onFrameReady(const UdpFrame &frame) {
-    if (frame.channelType == UdpChannelType::Media) {
-        emit mediaFrameReceived(frame);
-        return;
-    }
-    if (frame.channelType != UdpChannelType::Control) {
-        return;
-    }
-
-    switch (frame.frameType) {
-        case UdpFrameType::ProbeAck :
-            emit logReceived("udp probe ack received");
-            break;
-        case UdpFrameType::Punch :
-            handlePunch(frame);
-            break;
-        case UdpFrameType::PunchAck :
-            handlePunchAck(frame);
-            break;
-
-        default:
-            break;
-    }
-}
-
-void P2pSession::handlePunch(const UdpFrame &frame) {
-    UdpPunchPayload payload;
-    if (!UdpControlPayloadCodec::decodePunch(frame.payload, &payload)) {
-        emit errorOccurred("invalid punch payload");
-        return;
-    }
-
-    if (payload.roomId != roomId_) {
-        return;
-    }
-
-    if (payload.clientId == clientId_) {
-        return;
-    }
-
-    if (!peerClientId_.isEmpty() && payload.clientId != peerClientId_) {
-        return;
-    }
-
-    peerAddress_ = frame.senderAddress;
-    peerPort_ = frame.senderPort;
-
-    transport_.setPeerEndpoint(peerAddress_, peerPort_);
-    transport_.setPeerFilterEnabled(true);
-
-    UdpPunchAckPayload ack;
-    ack.roomId = roomId_;
-    ack.clientId = clientId_;
-
-    transport_.sendFrame(
-            UdpChannelType::Control,
-            UdpFrameType::PunchAck,
-            UdpControlPayloadCodec::encodePunchAck(ack)
-            );
-    markP2pReady(peerAddress_, peerPort_);
-}
-
-void P2pSession::handlePunchAck(const UdpFrame &frame) {
-    UdpPunchAckPayload payload;
-    if (!UdpControlPayloadCodec::decodePunchAck(frame.payload, &payload)) {
-        emit errorOccurred("invalid punch ack payload");
-        return;
-    }
-
-    if (payload.roomId != roomId_) {
-        return;
-    }
-
-    if (payload.clientId == clientId_) {
-        return;
-    }
-
-    if (!peerClientId_.isEmpty() && payload.clientId != peerClientId_) {
-        return;
-    }
-
-    markP2pReady(frame.senderAddress, frame.senderPort);
-}
-
-// 锁定对端udp port
-void P2pSession::markP2pReady(const QHostAddress &address, quint16 port) {
-    if (p2pReady_) {
-        return;
-    }
-    p2pReady_ = true;
-    punchTimer_.stop();
-
-    peerAddress_ = address;
-    peerPort_ = port;
-
-    transport_.setPeerEndpoint(peerAddress_, peerPort_);
-    transport_.setPeerFilterEnabled(true);
-
-    emit p2pReady(peerAddress_, peerPort_);
-}
-
-
-void P2pSession::sendMediaFrame(UdpFrameType type, const QByteArray& payload) {
-    transport_.sendFrame(UdpChannelType::Media, type, payload);
+    QMetaObject::invokeMethod(
+            worker,
+            [worker, type, payload] {
+                worker->sendMediaFrame(type, payload);
+            },
+            Qt::QueuedConnection
+    );
 }

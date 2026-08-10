@@ -64,4 +64,8 @@ struct UdpFrame {
     QByteArray payload;
 };
 
+Q_DECLARE_METATYPE(UdpFrame)
+Q_DECLARE_METATYPE(UdpFrameType)
+Q_DECLARE_METATYPE(UdpChannelType)
+
 #endif //P2PPLAY_UDPPACKET_H

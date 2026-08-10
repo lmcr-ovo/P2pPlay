@@ -10,25 +10,33 @@ VideoEncoder::VideoEncoder(QObject* parent)
     : QObject(parent) {
     thread_ = new QThread(this);
     worker_ = new VideoEncoderWorker;
-    worker_->moveToThread(thread_);
-    thread_->start();
-    connect(this, &VideoEncoder::forwadEncode,
-            worker_, &VideoEncoderWorker::onVideoImageReady);
+
     connect(worker_, &VideoEncoderWorker::videoSampleBytesReady,
             this, &VideoEncoder::videoSampleBytesReady);
+    connect(thread_, &QThread::finished,
+            worker_, &QObject::deleteLater);
+
+    worker_->moveToThread(thread_);
+    thread_->start();
+
 }
 
 VideoEncoder::~VideoEncoder() {
     disconnect(worker_, nullptr, this, nullptr);
     thread_->quit();
-    thread_->wait(5000);
-    delete worker_;
     worker_ = nullptr;
 }
 
 
 void VideoEncoder::applyConfig(const AppConfig &config) {
-    worker_->applyConfig(config);
+    VideoEncoderWorker* worker = worker_;
+    QMetaObject::invokeMethod(
+            worker,
+            [worker, config] {
+                worker->applyConfig(config);
+            },
+            Qt::QueuedConnection
+            );
 }
 
 void VideoEncoderWorker::applyConfig(const AppConfig& config) {
@@ -38,7 +46,14 @@ void VideoEncoderWorker::applyConfig(const AppConfig& config) {
 
 void VideoEncoder::onVideoImageReady(const QImage &img,
                                      quint32 sampleSeq) {
-    emit forwadEncode(img, sampleSeq);
+    VideoEncoderWorker* worker = worker_;
+    QMetaObject::invokeMethod(
+            worker,
+            [worker, img, sampleSeq] {
+                worker->onVideoImageReady(img, sampleSeq);
+            },
+            Qt::QueuedConnection
+            );
 }
 
 void VideoEncoderWorker::onVideoImageReady(const QImage &img,
@@ -66,10 +81,11 @@ QByteArray VideoEncoderWorker::handleJpeg(const QImage &img,
         return QByteArray();
     }
 
-    TraceManager::instance().record(sampleSeq, TraceStage::EncodeEnd, TraceManager::nowUs());
+
     if (!img.save(&buffer, "JPG", jpegQuality_)) {
         return QByteArray();
     }
+    TraceManager::instance().record(sampleSeq, TraceStage::EncodeEnd, TraceManager::nowUs());
 
     VideoSample sample;
     sample.videoSeq = sampleSeq;

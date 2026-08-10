@@ -3,9 +3,11 @@ add_library(Client
             SignalingClient.h SignalingClient.cpp
             ClientDispatcher.h ClientDispatcher.cpp
             P2pSession.h P2pSession.cpp
+            P2pSessionWorker.h P2pSessionWorker.cpp
             HostRoleService.h HostRoleService.cpp
             GuestRoleService.h GuestRoleService.cpp
-            MediaService.h MediaService.cpp)
+            MediaService.h MediaService.cpp
+            )
 
 target_include_directories(Client PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR})

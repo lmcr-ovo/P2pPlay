@@ -28,11 +28,6 @@ public:
     bool isRunning() const;
 
 signals:
-    //
-
-
-    //
-
     void udpMediaFrameToSend(UdpFrameType type, const QByteArray& payload);
 
     void videoSampleBytesReceived(const QByteArray& sampleBytes);

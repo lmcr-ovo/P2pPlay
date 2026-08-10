@@ -23,7 +23,7 @@ struct P2pConfig {
     quint16 punchPortRange = 32;
     int punchIntervalMs = 200;
 
-    int udpPacketsPerTick = 1000;
+    int udpPacketsPerTick = 100;
     int udpFlushIntervalMs = 1;
 };
 

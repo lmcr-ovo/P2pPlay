@@ -39,7 +39,6 @@ public:
     void applyConfig(const AppConfig& config);
 
 signals:
-    void forwadEncode(const QImage img, quint32 sampleSeq);
     void videoSampleBytesReady(const QByteArray& sampleBytes);
 
 public slots:

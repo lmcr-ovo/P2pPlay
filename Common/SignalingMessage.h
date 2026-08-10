@@ -14,4 +14,6 @@ struct SignalingMessage {
     bool success = false;
 };
 
+Q_DECLARE_METATYPE(SignalingMessage)
+
 #endif //P2PPLAY_SIGNALINGMESSAGE_H
