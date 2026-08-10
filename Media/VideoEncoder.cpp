@@ -8,14 +8,40 @@
 
 VideoEncoder::VideoEncoder(QObject* parent)
     : QObject(parent) {
+    thread_ = new QThread(this);
+    worker_ = new VideoEncoderWorker;
+    worker_->moveToThread(thread_);
+    thread_->start();
+    connect(this, &VideoEncoder::forwadEncode,
+            worker_, &VideoEncoderWorker::onVideoImageReady);
+    connect(worker_, &VideoEncoderWorker::videoSampleBytesReady,
+            this, &VideoEncoder::videoSampleBytesReady);
 }
 
+VideoEncoder::~VideoEncoder() {
+    disconnect(worker_, nullptr, this, nullptr);
+    thread_->quit();
+    thread_->wait(5000);
+    delete worker_;
+    worker_ = nullptr;
+}
+
+
 void VideoEncoder::applyConfig(const AppConfig &config) {
-    codecType_ = config.video.codecType;
+    worker_->applyConfig(config);
+}
+
+void VideoEncoderWorker::applyConfig(const AppConfig& config) {
     jpegQuality_ = config.video.jpegQuality;
+    codecType_ = config.video.codecType;
 }
 
 void VideoEncoder::onVideoImageReady(const QImage &img,
+                                     quint32 sampleSeq) {
+    emit forwadEncode(img, sampleSeq);
+}
+
+void VideoEncoderWorker::onVideoImageReady(const QImage &img,
         quint32 sampleSeq) {
     switch (codecType_) {
         case VideoSampleCodecType::Jpeg : {
@@ -31,7 +57,7 @@ void VideoEncoder::onVideoImageReady(const QImage &img,
     }
 }
 
-QByteArray VideoEncoder::handleJpeg(const QImage &img,
+QByteArray VideoEncoderWorker::handleJpeg(const QImage &img,
         quint32 sampleSeq) {
     QByteArray bytes;
     QBuffer buffer(&bytes);
@@ -40,10 +66,11 @@ QByteArray VideoEncoder::handleJpeg(const QImage &img,
         return QByteArray();
     }
 
+    TraceManager::instance().record(sampleSeq, TraceStage::EncodeEnd, TraceManager::nowUs());
     if (!img.save(&buffer, "JPG", jpegQuality_)) {
         return QByteArray();
     }
-    TraceManager::instance().record(sampleSeq, TraceStage::EncodeEnd, TraceManager::nowUs());
+
     VideoSample sample;
     sample.videoSeq = sampleSeq;
     sample.captureTimeStampMs =

@@ -11,10 +11,10 @@
 #include "VideoSample.h"
 #include "TraceManager.h"
 
-class VideoEncoder : public QObject {
-    Q_OBJECT
+class VideoEncoderWorker : public QObject {
+Q_OBJECT
 public:
-    explicit VideoEncoder(QObject* parent);
+    VideoEncoderWorker() = default;
     void applyConfig(const AppConfig& config);
 
 signals:
@@ -22,13 +22,37 @@ signals:
 
 public slots:
     void onVideoImageReady(const QImage &img,
-            quint32 sampleSeq);
+                           quint32 sampleSeq);
     QByteArray handleJpeg(const QImage& img, quint32 sampleSeq);
 
 private:
     VideoSampleCodecType codecType_ = VideoSampleCodecType::Jpeg;
     quint16 jpegQuality_ = 50;
     quint32 nextVideoSeq_ = 0;
+};
+
+class VideoEncoder : public QObject {
+    Q_OBJECT
+public:
+    explicit VideoEncoder(QObject* parent);
+    ~VideoEncoder() override ;
+    void applyConfig(const AppConfig& config);
+
+signals:
+    void forwadEncode(const QImage img, quint32 sampleSeq);
+    void videoSampleBytesReady(const QByteArray& sampleBytes);
+
+public slots:
+    void onVideoImageReady(const QImage &img,
+            quint32 sampleSeq);
+    //QByteArray handleJpeg(const QImage& img, quint32 sampleSeq);
+
+private:
+    //VideoSampleCodecType codecType_ = VideoSampleCodecType::Jpeg;
+    //quint16 jpegQuality_ = 50;
+    //quint32 nextVideoSeq_ = 0;
+    QThread* thread_;
+    VideoEncoderWorker* worker_;
 };
 
 
