@@ -12,16 +12,6 @@ MediaService::MediaService(QObject* parent)
 
     connect(thread_, &QThread::finished,
             worker_, &QObject::deleteLater);
-    connect(worker_, &MediaServiceWorker::videoSampleBytesReceived,
-            this, &MediaService::videoSampleBytesReceived);
-    connect(worker_, &MediaServiceWorker::audioSampleBytesReceived,
-            this, &MediaService::audioSampleBytesReceived);
-    connect(worker_, &MediaServiceWorker::inputCommandReceived,
-            this, &MediaService::inputCommandReceived);
-    connect(worker_, &MediaServiceWorker::keyFrameRequestReceived,
-            this, &MediaService::keyFrameRequestReceived);
-    connect(worker_, &MediaServiceWorker::udpMediaFrameToSend,
-            this, &MediaService::udpMediaFrameToSend);
     connect(worker_, &MediaServiceWorker::logReceived,
             this, &MediaService::logReceived);
     connect(worker_, &MediaServiceWorker::errorOccurred,
@@ -93,64 +83,4 @@ bool MediaService::isRunning() const {
             Qt::QueuedConnection
     );
     return result;
-}
-
-void MediaService::onP2pReady(const QHostAddress& address, quint16 port) {
-    QMetaObject::invokeMethod(
-            worker_,
-            [worker = worker_, address, port] {
-                worker->onP2pReady(address, port);
-            },
-            Qt::BlockingQueuedConnection
-    );
-}
-
-void MediaService::onUdpMediaFrameReceived(const UdpFrame& frame) {
-    QMetaObject::invokeMethod(
-            worker_,
-            [worker = worker_, frame] {
-                worker->onUdpMediaFrameReceived(frame);
-            },
-            Qt::QueuedConnection
-    );
-}
-
-bool MediaService::sendVideoSampleBytes(const QByteArray& payload) {
-    return QMetaObject::invokeMethod(
-            worker_,
-            [worker = worker_, payload] {
-                worker->sendVideoSampleBytes(payload);
-            },
-            Qt::QueuedConnection
-    );
-}
-
-bool MediaService::sendAudioSampleBytes(const QByteArray& sampleBytes) {
-    return QMetaObject::invokeMethod(
-            worker_,
-            [worker = worker_, sampleBytes] {
-                worker->sendAudioSampleBytes(sampleBytes);
-            },
-            Qt::QueuedConnection
-    );
-}
-
-bool MediaService::sendInputCommand(const QByteArray& commandBytes) {
-    return QMetaObject::invokeMethod(
-            worker_,
-            [worker = worker_, commandBytes] {
-                worker->sendInputCommand(commandBytes);
-            },
-            Qt::QueuedConnection
-    );
-}
-
-bool MediaService::sendKeyFrameRequest(const QByteArray& payload) {
-    return QMetaObject::invokeMethod(
-            worker_,
-            [worker = worker_, payload] {
-                worker->sendKeyFrameRequest(payload);
-            },
-            Qt::QueuedConnection
-    );
 }

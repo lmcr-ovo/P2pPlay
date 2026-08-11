@@ -8,20 +8,18 @@
 #include <QObject>
 #include "AppConfig.h"
 #include "VideoDecoder.h"
+#include "VideoDecoderWorker.h"
 
 class VideoRecevierPipline : public QObject {
     Q_OBJECT
 public:
     explicit VideoRecevierPipline(QObject* parent);
     void applyConfig(const AppConfig& config);
+    VideoDecoderWorker* decoderWorker() const;
 
 signals:
-    void videoSampleBytesReady(const QByteArray& sampleBytes);
-    void videoImageReady(const QImage& img, quint32 sampleId);
+    //void videoSampleBytesReady(const QByteArray& sampleBytes);
     void keyFrameRequestNeeded();
-
-public slots:
-    void onVideoSampleBytesReceived(const QByteArray& sampleBytes);
 
 private:
     VideoDecoder decoder_;

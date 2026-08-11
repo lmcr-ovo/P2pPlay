@@ -7,11 +7,13 @@
 VideoRecevierPipline::VideoRecevierPipline(QObject* parent)
     : QObject(parent),
     decoder_(this) {
-connect(this, &VideoRecevierPipline::videoSampleBytesReady,
-            &decoder_, &VideoDecoder::onVideoSampleBytesReceived);
-    connect(&decoder_, &VideoDecoder::videoImageReady,
-            this, &VideoRecevierPipline::videoImageReady);
-    connect(&decoder_, &VideoDecoder::keyFrameRequestNeeded,
+    //connect(this, &VideoRecevierPipline::videoSampleBytesReady,
+            //decoder_.worker(), &VideoDecoderWorker::onVideoSampleBytesReceived,
+            //Qt::QueuedConnection);
+    //connect(decoder_.worker(), &VideoDecoderWorker::videoImageReady,
+            //this, &VideoRecevierPipline::videoImageReady,
+            //Qt::QueuedConnection);
+    connect(decoder_.worker(), &VideoDecoderWorker::keyFrameRequestNeeded,
             this, &VideoRecevierPipline::keyFrameRequestNeeded);
 }
 
@@ -19,8 +21,8 @@ void VideoRecevierPipline::applyConfig(const AppConfig& config) {
     decoder_.applyConfig(config);
 }
 
-
-
-void VideoRecevierPipline::onVideoSampleBytesReceived(const QByteArray& sampleBytes) {
-    emit videoSampleBytesReady(sampleBytes);
+VideoDecoderWorker* VideoRecevierPipline::decoderWorker() const {
+    return decoder_.worker();
 }
+
+

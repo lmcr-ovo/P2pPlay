@@ -153,11 +153,16 @@ void ClientApp::connectCommonSignals() {
             &P2pSessionWorker::sendMediaFrame,
             Qt::QueuedConnection);
 
-
     connect(&p2pSession_, &P2pSession::p2pReady,
-            &mediaService_, &MediaService::onP2pReady);
+            mediaService_.worker(),
+            &MediaServiceWorker::onP2pReady);
     connect(&p2pSession_, &P2pSession::mediaFrameReceived,
-            &mediaService_, &MediaService::onUdpMediaFrameReceived);
+            mediaService_.worker(),
+            &MediaServiceWorker::onUdpMediaFrameReceived);
+    //connect(&p2pSession_, &P2pSession::p2pReady,
+            //&mediaService_, &MediaService::onP2pReady);
+    //connect(&p2pSession_, &P2pSession::mediaFrameReceived,
+            //&mediaService_, &MediaService::onUdpMediaFrameReceived);
     //connect(&mediaService_, &MediaService::udpMediaFrameToSend,
             //&p2pSession_, &P2pSession::sendMediaFrame);
     connect(&mediaService_, &MediaService::logReceived,
@@ -219,8 +224,8 @@ void ClientApp::connectRoleSignals() {
                 &VideoEncoderWorker::videoSampleBytesReady,
                 mediaService_.worker(),
                 &MediaServiceWorker::sendVideoSampleBytes));
-        roleConnections_.append(connect(&mediaService_,
-                &MediaService::keyFrameRequestReceived,
+        roleConnections_.append(connect(mediaService_.worker(),
+                &MediaServiceWorker::keyFrameRequestReceived,
                 videoSenderPipeline_.encoderWorker(),
                 &VideoEncoderWorker::requestKeyFrame));
         return;
@@ -250,16 +255,24 @@ void ClientApp::connectRoleSignals() {
 
 
         // 测试
-        roleConnections_.append(connect(&mediaService_, &MediaService::videoSampleBytesReceived,
-                &videoRecevierPipline_, &VideoRecevierPipline::onVideoSampleBytesReceived));
-        roleConnections_.append(connect(&videoRecevierPipline_, &VideoRecevierPipline::videoImageReady,
+        roleConnections_.append(connect(
+                mediaService_.worker(),
+                &MediaServiceWorker::videoSampleBytesReceived,
+                videoRecevierPipline_.decoderWorker(),
+                &VideoDecoderWorker::onVideoSampleBytesReceived));
+        roleConnections_.append(connect(
+                videoRecevierPipline_.decoderWorker(),
+                &VideoDecoderWorker::videoImageReady,
                 &videoWidget_, &VideoWidget::onVideoImageReady));
-        roleConnections_.append(connect(&videoRecevierPipline_,
-                &VideoRecevierPipline::keyFrameRequestNeeded,
-                this,
-                [this]() {
-                    mediaService_.sendKeyFrameRequest(QByteArray());
-                }));
+
+        roleConnections_.append(connect(
+                videoRecevierPipline_.decoderWorker(),
+                &VideoDecoderWorker::keyFrameRequestNeeded,
+                mediaService_.worker(),
+                [worker = mediaService_.worker()] {
+                    worker->sendKeyFrameRequest(QByteArray());
+                },
+                Qt::QueuedConnection));
     }
 }
 

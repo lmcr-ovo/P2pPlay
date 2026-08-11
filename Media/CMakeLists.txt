@@ -57,6 +57,7 @@ add_library(Media
         VideoEncoder.h VideoEncoder.cpp
         VideoSenderPipeline.h VideoSenderPipeline.cpp
         VideoDecoder.h VideoDecoder.cpp
+        VideoDecoderWorker.h VideoDecoderWorker.cpp
         VideoReceiverPipline.h VideoReceiverPipline.cpp
         )
 
