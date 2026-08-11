@@ -13,6 +13,11 @@ enum class VideoSampleCodecType : quint8 {
     H264 = 2
 };
 
+enum VideoSampleFlags : quint32 {
+    VideoSampleFlag_None = 0,
+    VideoSampleFlag_KeyFrame = 1u << 0
+};
+
 struct VideoSample {
     quint32 videoSeq = 0;
     quint64 captureTimeStampMs = 0;

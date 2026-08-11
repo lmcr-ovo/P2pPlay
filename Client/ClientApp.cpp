@@ -109,6 +109,8 @@ bool ClientApp::startAsGuest(const QString& clientId,
             config.server.udpPort
     );
 
+    videoRecevierPipline_.applyConfig(config);
+
     if (!p2pSession_.bind(config.p2p.localUdpPort)) {
         return false;
     }
@@ -217,6 +219,10 @@ void ClientApp::connectRoleSignals() {
                 &VideoEncoderWorker::videoSampleBytesReady,
                 mediaService_.worker(),
                 &MediaServiceWorker::sendVideoSampleBytes));
+        roleConnections_.append(connect(&mediaService_,
+                &MediaService::keyFrameRequestReceived,
+                videoSenderPipeline_.encoderWorker(),
+                &VideoEncoderWorker::requestKeyFrame));
         return;
     }
 
@@ -248,6 +254,12 @@ void ClientApp::connectRoleSignals() {
                 &videoRecevierPipline_, &VideoRecevierPipline::onVideoSampleBytesReceived));
         roleConnections_.append(connect(&videoRecevierPipline_, &VideoRecevierPipline::videoImageReady,
                 &videoWidget_, &VideoWidget::onVideoImageReady));
+        roleConnections_.append(connect(&videoRecevierPipline_,
+                &VideoRecevierPipline::keyFrameRequestNeeded,
+                this,
+                [this]() {
+                    mediaService_.sendKeyFrameRequest(QByteArray());
+                }));
     }
 }
 

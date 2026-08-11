@@ -11,6 +11,12 @@ connect(this, &VideoRecevierPipline::videoSampleBytesReady,
             &decoder_, &VideoDecoder::onVideoSampleBytesReceived);
     connect(&decoder_, &VideoDecoder::videoImageReady,
             this, &VideoRecevierPipline::videoImageReady);
+    connect(&decoder_, &VideoDecoder::keyFrameRequestNeeded,
+            this, &VideoRecevierPipline::keyFrameRequestNeeded);
+}
+
+void VideoRecevierPipline::applyConfig(const AppConfig& config) {
+    decoder_.applyConfig(config);
 }
 
 

@@ -14,6 +14,12 @@ MediaService::MediaService(QObject* parent)
             worker_, &QObject::deleteLater);
     connect(worker_, &MediaServiceWorker::videoSampleBytesReceived,
             this, &MediaService::videoSampleBytesReceived);
+    connect(worker_, &MediaServiceWorker::audioSampleBytesReceived,
+            this, &MediaService::audioSampleBytesReceived);
+    connect(worker_, &MediaServiceWorker::inputCommandReceived,
+            this, &MediaService::inputCommandReceived);
+    connect(worker_, &MediaServiceWorker::keyFrameRequestReceived,
+            this, &MediaService::keyFrameRequestReceived);
     connect(worker_, &MediaServiceWorker::udpMediaFrameToSend,
             this, &MediaService::udpMediaFrameToSend);
     connect(worker_, &MediaServiceWorker::logReceived,

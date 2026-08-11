@@ -34,7 +34,17 @@ struct VideoConfig {
     quint16 height = 720;
 
     quint16 jpegQuality = 50;
-    VideoSampleCodecType codecType = VideoSampleCodecType::Jpeg;
+    VideoSampleCodecType codecType = VideoSampleCodecType::H264;
+
+    int h264BitrateKbps = 4000;
+    int h264GopFrames = 60;
+    int h264EncoderThreads = 1;
+    QString h264Preset = "ultrafast";
+    QString h264Tune = "zerolatency";
+    QString h264Profile = "baseline";
+    bool h264RepeatHeaders = true;
+    bool h264ForceIdr = true;
+    int h264KeyFrameRequestIntervalMs = 200;
 
     quint16 frameIntervalMs() const {
         return fps > 0 ? 1000 / fps : 20;

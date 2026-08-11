@@ -6,16 +6,19 @@
 #define P2PPLAY_VIDEOSAMPLEPIPLINE_H
 
 #include <QObject>
+#include "AppConfig.h"
 #include "VideoDecoder.h"
 
 class VideoRecevierPipline : public QObject {
     Q_OBJECT
 public:
     explicit VideoRecevierPipline(QObject* parent);
+    void applyConfig(const AppConfig& config);
 
 signals:
     void videoSampleBytesReady(const QByteArray& sampleBytes);
     void videoImageReady(const QImage& img, quint32 sampleId);
+    void keyFrameRequestNeeded();
 
 public slots:
     void onVideoSampleBytesReceived(const QByteArray& sampleBytes);

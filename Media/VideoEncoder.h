@@ -5,16 +5,24 @@
 #ifndef P2PPLAY_VIDEOENCODER_H
 #define P2PPLAY_VIDEOENCODER_H
 
+#include <QByteArray>
 #include <QObject>
 #include <QImage>
+#include <QThread>
 #include "AppConfig.h"
 #include "VideoSample.h"
 #include "TraceManager.h"
 
+struct AVCodecContext;
+struct AVFrame;
+struct AVPacket;
+struct SwsContext;
+
 class VideoEncoderWorker : public QObject {
 Q_OBJECT
 public:
-    VideoEncoderWorker() = default;
+    explicit VideoEncoderWorker(QObject* parent = nullptr);
+    ~VideoEncoderWorker() override;
     void applyConfig(const AppConfig& config);
 
 signals:
@@ -23,12 +31,37 @@ signals:
 public slots:
     void onVideoImageReady(const QImage &img,
                            quint32 sampleSeq);
-    QByteArray handleJpeg(const QImage& img, quint32 sampleSeq);
+    void requestKeyFrame();
 
 private:
+    QByteArray handleJpeg(const QImage& img, quint32 sampleSeq);
+    QByteArray handleH264(const QImage& img, quint32 sampleSeq);
+
+    bool ensureH264Encoder(int width, int height);
+    void stopH264Encoder();
+    QByteArray drainH264Packets(quint32& sampleFlags);
+
     VideoSampleCodecType codecType_ = VideoSampleCodecType::Jpeg;
     quint16 jpegQuality_ = 50;
-    quint32 nextVideoSeq_ = 0;
+
+    quint16 fps_ = 60;
+    int h264BitrateKbps_ = 4000;
+    int h264GopFrames_ = 60;
+    int h264EncoderThreads_ = 1;
+    QString h264Preset_ = "ultrafast";
+    QString h264Tune_ = "zerolatency";
+    QString h264Profile_ = "baseline";
+    bool h264RepeatHeaders_ = true;
+    bool h264ForceIdr_ = true;
+    bool forceNextKeyFrame_ = true;
+
+    AVCodecContext* h264CodecContext_ = nullptr;
+    AVFrame* h264Frame_ = nullptr;
+    AVPacket* h264Packet_ = nullptr;
+    SwsContext* h264SwsContext_ = nullptr;
+    int h264Width_ = 0;
+    int h264Height_ = 0;
+    qint64 nextPts_ = 0;
 };
 
 class VideoEncoder : public QObject {
