@@ -26,6 +26,8 @@ signals:
 
 private:
     void screenShot();
+    QImage qtCaptureScreen();
+    QImage win32CaptureScreen();
 
 private:
     QTimer timer_;
