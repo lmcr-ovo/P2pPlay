@@ -12,9 +12,13 @@ VideoWidget::VideoWidget(QWidget* parent)
     setAutoFillBackground(true);
     setPalette(Qt::black);
 
-    refreshTimer_.setInterval(16);
     connect(&refreshTimer_, &QTimer::timeout, this, &VideoWidget::refreshFrame);
     refreshTimer_.start();
+}
+
+void VideoWidget::applyConfig(const AppConfig &config) {
+    intervalMs_ = config.video.frameIntervalMs();
+    refreshTimer_.setInterval(intervalMs_);
 }
 
 void VideoWidget::onVideoImageReady(const QImage& img, quint32 sampleId) {

@@ -63,6 +63,7 @@ bool ClientApp::startAsGuest(const QString& clientId,
     signalingClient_.connectToServer(serverTcpAddress, serverTcpPort);
 
     mediaService_.setRole(Role::Guest);
+
     return true;
 }
 
@@ -110,6 +111,8 @@ bool ClientApp::startAsGuest(const QString& clientId,
     );
 
     videoRecevierPipline_.applyConfig(config);
+
+    videoWidget_.applyConfig(config);
 
     if (!p2pSession_.bind(config.p2p.localUdpPort)) {
         return false;
