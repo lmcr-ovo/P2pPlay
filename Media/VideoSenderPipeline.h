@@ -13,12 +13,13 @@
 class VideoSenderPipeline : public QObject {
     Q_OBJECT
 public:
-    VideoSenderPipeline(QObject* parent);
+    explicit VideoSenderPipeline(QObject* parent);
     void applyConfig(const AppConfig& config);
+    VideoEncoderWorker* encoderWorker() const;
+    ScreenVideoSource* screenVideoSource();
+
     void start();
     void stop();
-signals:
-    void videoSampleBytesReady(const QByteArray& bytes);
 
 private:
     ScreenVideoSource videoSource_;

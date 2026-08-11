@@ -2,161 +2,149 @@
 
 #include "VideoSampleCodec.h"
 #include "TraceManager.h"
+#include "P2pSession.h"
 
 MediaService::MediaService(QObject* parent)
         : QObject(parent) {
+    thread_ = new QThread(this);
+    worker_ = new MediaServiceWorker;
+    worker_->moveToThread(thread_);
+
+    connect(thread_, &QThread::finished,
+            worker_, &QObject::deleteLater);
+    connect(worker_, &MediaServiceWorker::videoSampleBytesReceived,
+            this, &MediaService::videoSampleBytesReceived);
+    connect(worker_, &MediaServiceWorker::udpMediaFrameToSend,
+            this, &MediaService::udpMediaFrameToSend);
+    connect(worker_, &MediaServiceWorker::logReceived,
+            this, &MediaService::logReceived);
+    connect(worker_, &MediaServiceWorker::errorOccurred,
+            this, &MediaService::errorOccurred);
+
+    thread_->start();
 }
 
-void MediaService::setRole(MediaRole role) {
-    role_ = role;
+MediaService::~MediaService() {
+    thread_->quit();
+    thread_->wait();
+    worker_ = nullptr;
 }
 
-MediaRole MediaService::role() const {
-    return role_;
+MediaServiceWorker* MediaService::worker() const {
+    return worker_;
+}
+
+void MediaService::setRole(Role role) {
+    QMetaObject::invokeMethod(
+            worker_,
+            [worker = worker_, role] {
+                worker->setRole(role);
+            },
+            Qt::BlockingQueuedConnection
+            );
+}
+
+Role MediaService::role() const {
+    Role result;
+    QMetaObject::invokeMethod(
+            worker_,
+            [worker = worker_, &result] {
+                result = worker->role();
+            },
+            Qt::QueuedConnection
+            );
+    return result;
 }
 
 void MediaService::start() {
-    if (role_ == MediaRole::Unknown) {
-        emit errorOccurred("media role is unknown");
-        return;
-    }
-
-    running_ = true;
-    emit logReceived("media service started");
+    QMetaObject::invokeMethod(
+            worker_,
+            [worker = worker_] {
+                worker->start();
+            },
+            Qt::BlockingQueuedConnection
+    );
 }
 
 void MediaService::stop() {
-    running_ = false;
-    emit logReceived("media service stopped");
+    QMetaObject::invokeMethod(
+            worker_,
+            [worker = worker_] {
+                worker->stop();
+            },
+            Qt::BlockingQueuedConnection
+    );
+
 }
 
 bool MediaService::isRunning() const {
-    return running_;
+    bool result;
+    QMetaObject::invokeMethod(
+            worker_,
+            [worker = worker_, &result] {
+                result = worker->isRunning();
+            },
+            Qt::QueuedConnection
+    );
+    return result;
 }
 
 void MediaService::onP2pReady(const QHostAddress& address, quint16 port) {
-    Q_UNUSED(address)
-    Q_UNUSED(port)
-
-    start();
+    QMetaObject::invokeMethod(
+            worker_,
+            [worker = worker_, address, port] {
+                worker->onP2pReady(address, port);
+            },
+            Qt::BlockingQueuedConnection
+    );
 }
 
 void MediaService::onUdpMediaFrameReceived(const UdpFrame& frame) {
-    if (!running_) {
-        return;
-    }
-
-    if (frame.channelType != UdpChannelType::Media) {
-        return;
-    }
-
-    switch (frame.frameType) {
-        case UdpFrameType::VideoFrame:
-            {
-                quint32 sampleId = 0;
-                if (VideoSampleCodec::peekVideoSeq(frame.payload, sampleId)) {
-                    TraceManager::instance().record(sampleId,
-                                                    TraceStage::ReassembleEnd,
-                                                    TraceManager::nowUs());
-                }
-            }
-            emit videoSampleBytesReceived(frame.payload);
-            break;
-
-        case UdpFrameType::AudioFrame:
-            emit audioSampleBytesReceived(frame.payload);
-            break;
-
-        case UdpFrameType::InputEvent:
-            emit inputCommandReceived(frame.payload);
-            break;
-
-        case UdpFrameType::KeyFrameRequest:
-            emit keyFrameRequestReceived(frame.payload);
-            break;
-
-        default:
-            break;
-    }
+    QMetaObject::invokeMethod(
+            worker_,
+            [worker = worker_, frame] {
+                worker->onUdpMediaFrameReceived(frame);
+            },
+            Qt::QueuedConnection
+    );
 }
 
 bool MediaService::sendVideoSampleBytes(const QByteArray& payload) {
-    if (!running_) {
-        emit errorOccurred("media service is not running");
-        return false;
-    }
-
-    if (!canSend(UdpFrameType::VideoFrame)) {
-        emit errorOccurred("current role cannot send video frame");
-        return false;
-    }
-
-    quint32 sampleId = 0;
-    if (VideoSampleCodec::peekVideoSeq(payload, sampleId)) {
-        TraceManager::instance().record(sampleId,
-                                        TraceStage::SendEnd,
-                                        TraceManager::nowUs());
-    }
-
-    emit udpMediaFrameToSend(UdpFrameType::VideoFrame, payload);
-    return true;
+    return QMetaObject::invokeMethod(
+            worker_,
+            [worker = worker_, payload] {
+                worker->sendVideoSampleBytes(payload);
+            },
+            Qt::QueuedConnection
+    );
 }
 
 bool MediaService::sendAudioSampleBytes(const QByteArray& sampleBytes) {
-    if (!running_) {
-        emit errorOccurred("media service is not running");
-        return false;
-    }
-
-    if (!canSend(UdpFrameType::AudioFrame)) {
-        emit errorOccurred("current role cannot send audio frame");
-        return false;
-    }
-
-    emit udpMediaFrameToSend(UdpFrameType::AudioFrame, sampleBytes);
-    return true;
+    return QMetaObject::invokeMethod(
+            worker_,
+            [worker = worker_, sampleBytes] {
+                worker->sendAudioSampleBytes(sampleBytes);
+            },
+            Qt::QueuedConnection
+    );
 }
 
 bool MediaService::sendInputCommand(const QByteArray& commandBytes) {
-    if (!running_) {
-        emit errorOccurred("media service is not running");
-        return false;
-    }
-
-    if (!canSend(UdpFrameType::InputEvent)) {
-        emit errorOccurred("current role cannot send input event");
-        return false;
-    }
-
-    emit udpMediaFrameToSend(UdpFrameType::InputEvent, commandBytes);
-    return true;
+    return QMetaObject::invokeMethod(
+            worker_,
+            [worker = worker_, commandBytes] {
+                worker->sendInputCommand(commandBytes);
+            },
+            Qt::QueuedConnection
+    );
 }
 
 bool MediaService::sendKeyFrameRequest(const QByteArray& payload) {
-    if (!running_) {
-        emit errorOccurred("media service is not running");
-        return false;
-    }
-
-    if (!canSend(UdpFrameType::KeyFrameRequest)) {
-        emit errorOccurred("current role cannot send key frame request");
-        return false;
-    }
-
-    emit udpMediaFrameToSend(UdpFrameType::KeyFrameRequest, payload);
-    return true;
-}
-
-bool MediaService::canSend(UdpFrameType type) const {
-    if (role_ == MediaRole::Host) {
-        return type == UdpFrameType::VideoFrame
-               || type == UdpFrameType::AudioFrame;
-    }
-
-    if (role_ == MediaRole::Guest) {
-        return type == UdpFrameType::InputEvent
-               || type == UdpFrameType::KeyFrameRequest;
-    }
-
-    return false;
+    return QMetaObject::invokeMethod(
+            worker_,
+            [worker = worker_, payload] {
+                worker->sendKeyFrameRequest(payload);
+            },
+            Qt::QueuedConnection
+    );
 }

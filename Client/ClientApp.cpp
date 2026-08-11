@@ -38,7 +38,7 @@ bool ClientApp::startAsHost(const QString& clientId,
     connectRoleSignals();
     signalingClient_.connectToServer(serverTcpAddress, serverTcpPort);
 
-    mediaService_.setRole(MediaRole::Host);
+    mediaService_.setRole(Role::Host);
     return true;
 }
 
@@ -62,7 +62,7 @@ bool ClientApp::startAsGuest(const QString& clientId,
     connectRoleSignals();
     signalingClient_.connectToServer(serverTcpAddress, serverTcpPort);
 
-    mediaService_.setRole(MediaRole::Guest);
+    mediaService_.setRole(Role::Guest);
     return true;
 }
 
@@ -72,7 +72,7 @@ bool ClientApp::startAsHost(const QString& clientId, const AppConfig& config) {
 
     role_ = Role::Host;
     hostRoleService_.setClientId(clientId);
-    mediaService_.setRole(MediaRole::Host);
+    mediaService_.setRole(Role::Host);
 
     p2pSession_.applyConfig(config.p2p);
     p2pSession_.setServerUdpEndpoint(
@@ -101,7 +101,7 @@ bool ClientApp::startAsGuest(const QString& clientId,
     role_ = Role::Guest;
     videoWidget_.show();
     guestRoleService_.setClientInfo(roomId, clientId);
-    mediaService_.setRole(MediaRole::Guest);
+    mediaService_.setRole(Role::Guest);
 
     p2pSession_.applyConfig(config.p2p);
     p2pSession_.setServerUdpEndpoint(
@@ -144,14 +144,20 @@ void ClientApp::connectCommonSignals() {
                                    .arg(static_cast<quint16>(message.type)));
     });
 
+//////////////////////////////////////////////////////////////////////////////////
+    connect(mediaService_.worker(),
+            &MediaServiceWorker::udpMediaFrameToSend,
+            p2pSession_.worker(),
+            &P2pSessionWorker::sendMediaFrame,
+            Qt::QueuedConnection);
 
 
     connect(&p2pSession_, &P2pSession::p2pReady,
             &mediaService_, &MediaService::onP2pReady);
     connect(&p2pSession_, &P2pSession::mediaFrameReceived,
             &mediaService_, &MediaService::onUdpMediaFrameReceived);
-    connect(&mediaService_, &MediaService::udpMediaFrameToSend,
-            &p2pSession_, &P2pSession::sendMediaFrame);
+    //connect(&mediaService_, &MediaService::udpMediaFrameToSend,
+            //&p2pSession_, &P2pSession::sendMediaFrame);
     connect(&mediaService_, &MediaService::logReceived,
             this, &ClientApp::logReceived);
     connect(&mediaService_, &MediaService::errorOccurred,
@@ -200,8 +206,17 @@ void ClientApp::connectRoleSignals() {
         // 测试
         roleConnections_.append(connect(&p2pSession_, &P2pSession::p2pReady,
                 &videoSenderPipeline_, &VideoSenderPipeline::start));
-        roleConnections_.append(connect(&videoSenderPipeline_, &VideoSenderPipeline::videoSampleBytesReady,
-                &mediaService_, &MediaService::sendVideoSampleBytes));
+
+        //roleConnections_.append(connect(&videoSenderPipeline_, &VideoSenderPipeline::videoSampleBytesReady,
+                //&mediaService_, &MediaService::sendVideoSampleBytes));
+        roleConnections_.append(connect(videoSenderPipeline_.screenVideoSource(),
+                &ScreenVideoSource::videoImageReady,
+                videoSenderPipeline_.encoderWorker(),
+                &VideoEncoderWorker::onVideoImageReady));
+        roleConnections_.append(connect(videoSenderPipeline_.encoderWorker(),
+                &VideoEncoderWorker::videoSampleBytesReady,
+                mediaService_.worker(),
+                &MediaServiceWorker::sendVideoSampleBytes));
         return;
     }
 

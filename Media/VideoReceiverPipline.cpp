@@ -13,6 +13,8 @@ connect(this, &VideoRecevierPipline::videoSampleBytesReady,
             this, &VideoRecevierPipline::videoImageReady);
 }
 
+
+
 void VideoRecevierPipline::onVideoSampleBytesReceived(const QByteArray& sampleBytes) {
     emit videoSampleBytesReady(sampleBytes);
 }

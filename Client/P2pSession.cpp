@@ -98,6 +98,10 @@ void P2pSession::setPunchPortRange(quint16 range) {
             );
 }
 
+P2pSessionWorker* P2pSession::worker() const {
+    return worker_;
+}
+
 void P2pSession::onProbePermitted(const SignalingMessage &message) {
     P2pSessionWorker* worker = worker_;
 

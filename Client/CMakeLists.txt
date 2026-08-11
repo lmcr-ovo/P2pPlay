@@ -1,4 +1,5 @@
 add_library(Client
+            Role.h
             ClientApp.h ClientApp.cpp
             SignalingClient.h SignalingClient.cpp
             ClientDispatcher.h ClientDispatcher.cpp
@@ -7,6 +8,7 @@ add_library(Client
             HostRoleService.h HostRoleService.cpp
             GuestRoleService.h GuestRoleService.cpp
             MediaService.h MediaService.cpp
+            MediaServiceWorker.h MediaServiceWorker.cpp
             )
 
 target_include_directories(Client PUBLIC

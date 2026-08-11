@@ -11,14 +11,8 @@ VideoEncoder::VideoEncoder(QObject* parent)
     thread_ = new QThread(this);
     worker_ = new VideoEncoderWorker;
 
-    connect(worker_, &VideoEncoderWorker::videoSampleBytesReady,
-            this, &VideoEncoder::videoSampleBytesReady);
-    connect(thread_, &QThread::finished,
-            worker_, &QObject::deleteLater);
-
     worker_->moveToThread(thread_);
     thread_->start();
-
 }
 
 VideoEncoder::~VideoEncoder() {
@@ -39,22 +33,16 @@ void VideoEncoder::applyConfig(const AppConfig &config) {
             );
 }
 
+
+VideoEncoderWorker* VideoEncoder::worker() const {
+    return worker_;
+}
+
 void VideoEncoderWorker::applyConfig(const AppConfig& config) {
     jpegQuality_ = config.video.jpegQuality;
     codecType_ = config.video.codecType;
 }
 
-void VideoEncoder::onVideoImageReady(const QImage &img,
-                                     quint32 sampleSeq) {
-    VideoEncoderWorker* worker = worker_;
-    QMetaObject::invokeMethod(
-            worker,
-            [worker, img, sampleSeq] {
-                worker->onVideoImageReady(img, sampleSeq);
-            },
-            Qt::QueuedConnection
-            );
-}
 
 void VideoEncoderWorker::onVideoImageReady(const QImage &img,
         quint32 sampleSeq) {

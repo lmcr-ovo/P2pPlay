@@ -28,6 +28,7 @@ public:
     void setClientInfo(const QString& roomId, const QString& clientId);
     void setServerUdpEndpoint(const QHostAddress& address, quint16 port);
     void setPunchPortRange(quint16 range);
+    P2pSessionWorker* worker() const;
 
 signals:
     void p2pReady(const QHostAddress& address, quint16 port);

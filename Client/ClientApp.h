@@ -8,6 +8,7 @@
 #include <QObject>
 #include <QHostAddress>
 #include <QList>
+#include "Role.h"
 #include "AppConfig.h"
 #include "SignalingClient.h"
 #include "ClientDispatcher.h"
@@ -22,12 +23,6 @@
 class ClientApp : public QObject {
     Q_OBJECT
 public:
-    enum class Role {
-        Unknown,
-        Host,
-        Guest
-    };
-
     explicit ClientApp();
 
     // 提供给测试或ui的接口

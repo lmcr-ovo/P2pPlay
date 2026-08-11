@@ -4,23 +4,19 @@
 #include <QObject>
 #include <QByteArray>
 #include <QHostAddress>
-
+#include "Role.h"
 #include "UdpPacket.h"
-
-enum class MediaRole {
-    Unknown,
-    Host,
-    Guest
-};
+#include "MediaServiceWorker.h"
 
 class MediaService : public QObject {
 Q_OBJECT
 
 public:
     explicit MediaService(QObject* parent = nullptr);
-
-    void setRole(MediaRole role);
-    MediaRole role() const;
+    ~MediaService() override;
+    MediaServiceWorker* worker() const;
+    void setRole(Role role);
+    Role role() const;
 
     void start();
     void stop();
@@ -48,11 +44,8 @@ public slots:
     bool sendKeyFrameRequest(const QByteArray& requestBytes);
 
 private:
-    bool canSend(UdpFrameType type) const;
-
-private:
-    MediaRole role_ = MediaRole::Unknown;
-    bool running_ = false;
+    QThread* thread_ = nullptr;
+    MediaServiceWorker* worker_ = nullptr;
 };
 
 #endif // P2PPLAY_MEDIASERVICE_H

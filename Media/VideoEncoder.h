@@ -37,19 +37,9 @@ public:
     explicit VideoEncoder(QObject* parent);
     ~VideoEncoder() override ;
     void applyConfig(const AppConfig& config);
-
-signals:
-    void videoSampleBytesReady(const QByteArray& sampleBytes);
-
-public slots:
-    void onVideoImageReady(const QImage &img,
-            quint32 sampleSeq);
-    //QByteArray handleJpeg(const QImage& img, quint32 sampleSeq);
+    VideoEncoderWorker* worker() const;
 
 private:
-    //VideoSampleCodecType codecType_ = VideoSampleCodecType::Jpeg;
-    //quint16 jpegQuality_ = 50;
-    //quint32 nextVideoSeq_ = 0;
     QThread* thread_;
     VideoEncoderWorker* worker_;
 };
