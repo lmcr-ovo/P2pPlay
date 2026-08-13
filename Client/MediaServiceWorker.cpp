@@ -3,7 +3,7 @@
 //
 
 #include "MediaServiceWorker.h"
-#include "VideoSampleCodec.h"
+#include "Video/VideoSampleCodec.h"
 #include "TraceManager.h"
 
 MediaServiceWorker::MediaServiceWorker(QObject* parent)
@@ -71,7 +71,7 @@ void MediaServiceWorker::onUdpMediaFrameReceived(const UdpFrame& frame) {
             break;
 
         case UdpFrameType::InputEvent:
-            emit inputCommandReceived(frame.payload);
+            emit inputSampleBytesReceived(frame.payload);
             break;
 
         case UdpFrameType::KeyFrameRequest:
@@ -120,7 +120,7 @@ bool MediaServiceWorker::sendAudioSampleBytes(const QByteArray& sampleBytes) {
     return true;
 }
 
-bool MediaServiceWorker::sendInputCommand(const QByteArray& commandBytes) {
+bool MediaServiceWorker::sendInputSampleBytes(const QByteArray& commandBytes) {
     if (!running_) {
         emit errorOccurred("media service is not running");
         return false;
@@ -153,7 +153,8 @@ bool MediaServiceWorker::sendKeyFrameRequest(const QByteArray& payload) {
 bool MediaServiceWorker::canSend(UdpFrameType type) const {
     if (role_ == Role::Host) {
         return type == UdpFrameType::VideoFrame
-               || type == UdpFrameType::AudioFrame;
+               || type == UdpFrameType::AudioFrame
+               || type == UdpFrameType::InputEvent;
     }
 
     if (role_ == Role::Guest) {

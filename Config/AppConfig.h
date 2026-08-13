@@ -7,7 +7,7 @@
 
 #include <QString>
 #include <QHostAddress>
-#include "VideoSample.h"
+#include "Video/VideoSample.h"
 
 struct ServerConfig {
     QHostAddress tcpAddress = QHostAddress(QHostAddress::LocalHost);

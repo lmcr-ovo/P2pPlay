@@ -16,9 +16,11 @@
 #include "HostRoleService.h"
 #include "GuestRoleService.h"
 #include "MediaService.h"
-#include "VideoSenderPipeline.h"
-#include "VideoReceiverPipline.h"
+#include "Video/VideoSenderPipeline.h"
+#include "Video/VideoReceiverPipline.h"
 #include "VideoWidget.h"
+#include "Input/InputSender.h"
+#include "Input/InputReceiver.h"
 
 class ClientApp : public QObject {
     Q_OBJECT
@@ -71,6 +73,9 @@ private:
     VideoSenderPipeline videoSenderPipeline_;
     VideoRecevierPipline videoRecevierPipline_;
     VideoWidget videoWidget_;
+
+    InputSender inputSender_;
+    InputReceiver inputReceiver_;
 };
 
 

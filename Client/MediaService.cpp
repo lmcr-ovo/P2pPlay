@@ -1,6 +1,6 @@
 #include "MediaService.h"
 
-#include "VideoSampleCodec.h"
+#include "Video/VideoSampleCodec.h"
 #include "TraceManager.h"
 #include "P2pSession.h"
 

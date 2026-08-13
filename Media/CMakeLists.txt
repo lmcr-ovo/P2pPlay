@@ -50,15 +50,25 @@ endif()
 
 #----------------------------------------------------------------------------------------
 add_library(Media
-        VideoSample.h
-        VideoSampleCodec.h VideoSampleCodec.cpp
-        ScreenVideoSource.h ScreenVideoSource.cpp
         VideoWidget.h VideoWidget.cpp
-        VideoEncoder.h VideoEncoder.cpp
-        VideoSenderPipeline.h VideoSenderPipeline.cpp
-        VideoDecoder.h VideoDecoder.cpp
-        VideoDecoderWorker.h VideoDecoderWorker.cpp
-        VideoReceiverPipline.h VideoReceiverPipline.cpp
+
+        Video/VideoSample.h
+        Video/VideoSampleCodec.h Video/VideoSampleCodec.cpp
+        Video/ScreenVideoSource.h Video/ScreenVideoSource.cpp
+        Video/VideoEncoder.h Video/VideoEncoder.cpp
+        Video/VideoSenderPipeline.h Video/VideoSenderPipeline.cpp
+        Video/VideoDecoder.h Video/VideoDecoder.cpp
+        Video/VideoDecoderWorker.h Video/VideoDecoderWorker.cpp
+        Video/VideoReceiverPipline.h Video/VideoReceiverPipline.cpp
+
+        #-----------------------------按键----------------------------------
+        Input/InputSample.h
+        Input/InputSampleCodec.h Input/InputSampleCodec.cpp
+        Input/InputSender.h Input/InputSender.cpp
+        Input/InputSenderWorker.h Input/InputSenderWorker.cpp
+        Input/InputReceiver.h Input/InputReceiver.cpp
+        Input/InputReceiverWorker.h Input/InputReceiverWorker.cpp
+        Input/InputInjector.h Input/InputInjector.cpp
         )
 
 

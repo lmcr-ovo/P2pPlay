@@ -31,14 +31,14 @@ ServerApp::ServerApp()
     connect(&natProbeService_, &NatProbeService::errorOccurred,
             this, &ServerApp::errorOccurred);
 }
-
+/*
 bool ServerApp::start(const ServerConfig& config) {
     return start(config.tcpAddress,
                  config.tcpPort,
                  config.udpAddress,
                  config.udpPort);
 }
-
+*/
 /*
  * 启动服务器开始工作
  * 启动tcp信令服务及内网穿透服务

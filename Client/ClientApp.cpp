@@ -14,7 +14,10 @@ ClientApp::ClientApp()
       guestRoleService_(this),
       videoSenderPipeline_(this),
       videoRecevierPipline_(this),
-      videoWidget_(nullptr) {
+      videoWidget_(nullptr),
+      inputSender_(this),
+      inputReceiver_(this) {
+    qRegisterMetaType<InputSample>("InputSample");
     TraceManager::instance();
     connectCommonSignals();
 }
@@ -231,6 +234,21 @@ void ClientApp::connectRoleSignals() {
                 &MediaServiceWorker::keyFrameRequestReceived,
                 videoSenderPipeline_.encoderWorker(),
                 &VideoEncoderWorker::requestKeyFrame));
+
+        //-------------------------------按键--------------------------------
+        roleConnections_.append(connect(
+                mediaService_.worker(),
+                &MediaServiceWorker::inputSampleBytesReceived,
+                inputReceiver_.worker(),
+                &InputReceiverWorker::onInputSampleBytesReady,
+                Qt::QueuedConnection));
+
+        roleConnections_.append(connect(
+                inputReceiver_.worker(),
+                &InputReceiverWorker::inputAckSampleBytesReady,
+                mediaService_.worker(),
+                &MediaServiceWorker::sendInputSampleBytes,
+                Qt::QueuedConnection));
         return;
     }
 
@@ -275,6 +293,28 @@ void ClientApp::connectRoleSignals() {
                 [worker = mediaService_.worker()] {
                     worker->sendKeyFrameRequest(QByteArray());
                 },
+                Qt::QueuedConnection));
+
+        //------------------------按键------------------------------
+        roleConnections_.append(connect(
+                &videoWidget_,
+                &VideoWidget::inputRawSampleReady,
+                inputSender_.worker(),
+                &InputSenderWorker::onInputRawSampleReady,
+                Qt::QueuedConnection));
+
+        roleConnections_.append(connect(
+                inputSender_.worker(),
+                &InputSenderWorker::inputSampleBytesReady,
+                mediaService_.worker(),
+                &MediaServiceWorker::sendInputSampleBytes,
+                Qt::QueuedConnection));
+
+        roleConnections_.append(connect(
+                mediaService_.worker(),
+                &MediaServiceWorker::inputSampleBytesReceived,
+                inputSender_.worker(),
+                &InputSenderWorker::onInputAckSampleBytesReady,
                 Qt::QueuedConnection));
     }
 }

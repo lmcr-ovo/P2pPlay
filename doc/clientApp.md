@@ -253,7 +253,7 @@ Guest 捕获鼠标键盘
   -> MediaService::sendInputEvent(payload)
   -> P2pSession
   -> Host 收到 InputEvent
-  -> MediaService::inputCommandReceived
+  -> MediaService::inputSampleBytesReceived
   -> 输入执行模块
 ```
 
