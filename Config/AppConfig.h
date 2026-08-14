@@ -10,10 +10,10 @@
 #include "Video/VideoSample.h"
 
 struct ServerConfig {
-    QHostAddress tcpAddress = QHostAddress(QHostAddress::LocalHost);
+    QHostAddress tcpAddress = QHostAddress("118.195.142.123");
     quint16 tcpPort = 9000;
 
-    QHostAddress udpAddress = QHostAddress(QHostAddress::LocalHost);
+    QHostAddress udpAddress = QHostAddress("118.195.142.123");
     quint16 udpPort = 9001;
 };
 
@@ -28,7 +28,7 @@ struct P2pConfig {
 };
 
 struct VideoConfig {
-    quint16 fps = 100;
+    quint16 fps = 30;
 
     quint16 width = 1280;
     quint16 height = 720;

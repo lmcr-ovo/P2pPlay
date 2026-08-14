@@ -29,7 +29,7 @@ struct UdpPacket {
     static constexpr quint32 Magic = 0x50325031;
     static constexpr quint16 Version = 1;
 
-    static constexpr int MaxDatagramSize = 1200;
+    static constexpr int MaxDatagramSize = 600;
 
     static constexpr int FixedHeaderSize =
             sizeof(quint32) + // magic

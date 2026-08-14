@@ -19,6 +19,7 @@
 #include "Video/VideoSenderPipeline.h"
 #include "Video/VideoReceiverPipline.h"
 #include "VideoWidget.h"
+#include "Input/InputCapture.h"
 #include "Input/InputSender.h"
 #include "Input/InputReceiver.h"
 
@@ -74,6 +75,7 @@ private:
     VideoRecevierPipline videoRecevierPipline_;
     VideoWidget videoWidget_;
 
+    InputCapture inputCapture_;
     InputSender inputSender_;
     InputReceiver inputReceiver_;
 };

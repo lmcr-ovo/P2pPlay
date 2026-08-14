@@ -77,7 +77,13 @@ void UdpPacketQueue::sendPacketPerTick() {
                 bytes, pending.address, pending.port);
 
         if (written != bytes.size()) {
-            // 后面建议 emit writeFailed(sock_->errorString());
+            qDebug() << "udp send failed"
+                     << "target=" << pending.address.toString()
+                     << pending.port
+                     << "size=" << bytes.size()
+                     << "written=" << written
+                     << "error=" << sock_->error()
+                     << "errorString=" << sock_->errorString();
             continue;
         }
 

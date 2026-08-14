@@ -20,8 +20,6 @@ void InputReceiverWorker::onInputSampleBytesReady(const QByteArray &bytes) {
     if (!InputSampleCodec::decode(bytes, sample)) {
         return;
     }
-    qDebug() << "kind " << static_cast<quint8>(sample.kind);
-    qDebug() << "device" << static_cast<quint8>(sample.device);
 
     if (sample.kind != InputSampleKind::Request) {
         return;

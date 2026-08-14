@@ -64,6 +64,8 @@ add_library(Media
         #-----------------------------按键----------------------------------
         Input/InputSample.h
         Input/InputSampleCodec.h Input/InputSampleCodec.cpp
+        Input/InputCapture.h Input/InputCapture.cpp
+        Input/InputCaptureWorker.h Input/InputCaptureWorker.cpp
         Input/InputSender.h Input/InputSender.cpp
         Input/InputSenderWorker.h Input/InputSenderWorker.cpp
         Input/InputReceiver.h Input/InputReceiver.cpp

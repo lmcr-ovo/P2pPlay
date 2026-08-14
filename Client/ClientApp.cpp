@@ -15,6 +15,7 @@ ClientApp::ClientApp()
       videoSenderPipeline_(this),
       videoRecevierPipline_(this),
       videoWidget_(nullptr),
+      inputCapture_(this),
       inputSender_(this),
       inputReceiver_(this) {
     qRegisterMetaType<InputSample>("InputSample");
@@ -296,9 +297,23 @@ void ClientApp::connectRoleSignals() {
                 Qt::QueuedConnection));
 
         //------------------------按键------------------------------
+        /*
         roleConnections_.append(connect(
                 &videoWidget_,
                 &VideoWidget::inputRawSampleReady,
+                inputSender_.worker(),
+                &InputSenderWorker::onInputRawSampleReady,
+                Qt::QueuedConnection));
+                */
+        roleConnections_.append(connect(
+                &p2pSession_,
+                &P2pSession::p2pReady,
+                inputCapture_.worker(),
+                &InputCaptureWorker::start));
+
+        roleConnections_.append(connect(
+                inputCapture_.worker(),
+                &InputCaptureWorker::inputRawSampleReady,
                 inputSender_.worker(),
                 &InputSenderWorker::onInputRawSampleReady,
                 Qt::QueuedConnection));
@@ -316,6 +331,13 @@ void ClientApp::connectRoleSignals() {
                 inputSender_.worker(),
                 &InputSenderWorker::onInputAckSampleBytesReady,
                 Qt::QueuedConnection));
+
+        roleConnections_.append(connect(
+                &videoWidget_,
+                &VideoWidget::inputControlActiveChanged,
+                inputCapture_.worker(),
+                &InputCaptureWorker::setControlActive,
+                Qt::QueuedConnection));
     }
 }
 
@@ -325,4 +347,6 @@ void ClientApp::clearRoleConnections() {
     }
 
     roleConnections_.clear();
+
+    inputCapture_.stop();
 }

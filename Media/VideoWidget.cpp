@@ -15,20 +15,19 @@
 VideoWidget::VideoWidget(QWidget* parent)
     : QWidget(parent) {
     setFocusPolicy(Qt::StrongFocus);
-    installEventFilter(this);
+    setMouseTracking(true);
 
     setAutoFillBackground(true);
     setPalette(Qt::black);
 
-    connect(&refreshTimer_, &QTimer::timeout, this, &VideoWidget::refreshFrame);
+    connect(&refreshTimer_, &QTimer::timeout,
+            this, &VideoWidget::refreshFrame);
     refreshTimer_.start();
 }
 
 void VideoWidget::applyConfig(const AppConfig &config) {
     intervalMs_ = config.video.frameIntervalMs();
     refreshTimer_.setInterval(intervalMs_);
-
-    keyMapper_.insert('A', VK_LWIN);
 }
 
 void VideoWidget::onVideoImageReady(const QImage& img, quint32 sampleId) {
@@ -64,103 +63,35 @@ void VideoWidget::paintEvent(QPaintEvent *event) {
     }
 }
 
-bool VideoWidget::eventFilter(QObject* watched, QEvent* event) {
+void VideoWidget::mousePressEvent(QMouseEvent* event) {
+    QWidget::mousePressEvent(event);
 
-    switch (event->type()) {
-        case QEvent::KeyPress: {
-            auto *ke = static_cast<QKeyEvent*>(event);
-            InputSample sample;
-            sample.kind = InputSampleKind::Request;
-            sample.device = InputDevice::Keyboard;
-            sample.action = InputAction::KeyDown;
+    setFocus(Qt::MouseFocusReason);
 
-            if (keyMapper_.contains(ke->nativeVirtualKey())) {
-                sample.vk = keyMapper_[ke->nativeVirtualKey()];
-                qDebug() << "map from" << ke->nativeVirtualKey() << sample.vk;
-            } else {
-                qDebug() << "don't map" << ke->nativeVirtualKey();
-                sample.vk = ke->nativeVirtualKey();
-            }
-
-
-            sample.timeStampMs = QDateTime::currentMSecsSinceEpoch();
-            emit inputRawSampleReady(sample);
-            break;
-        }
-        case QEvent::KeyRelease: {
-            auto *ke = static_cast<QKeyEvent*>(event);
-            InputSample sample;
-            sample.kind = InputSampleKind::Request;
-            sample.device = InputDevice::Keyboard;
-            sample.action = InputAction::KeyUp;
-
-            if (keyMapper_.contains(ke->nativeVirtualKey())) {
-                sample.vk = keyMapper_[ke->nativeVirtualKey()];
-            } else {
-                sample.vk = ke->nativeVirtualKey();
-            }
-
-            sample.timeStampMs = QDateTime::currentMSecsSinceEpoch();
-            emit inputRawSampleReady(sample);
-            break;
-        }
-
-        case QEvent::MouseButtonPress: {
-            auto* me = static_cast<QMouseEvent*>(event);
-            InputSample sample;
-            sample.kind = InputSampleKind::Request;
-            sample.device = InputDevice::Mouse;
-            sample.action = InputAction::MouseDown;
-            sample.x = me->pos().x();
-            sample.y = me->pos().y();
-            sample.mouseButton = mapMouseButtonFromQt(me->button());
-            sample.timeStampMs = QDateTime::currentMSecsSinceEpoch();
-            emit inputRawSampleReady(sample);
-            break;
-        }
-
-        case QEvent::MouseButtonRelease: {
-            auto* me = static_cast<QMouseEvent*>(event);
-            InputSample sample;
-            sample.kind = InputSampleKind::Request;
-            sample.device = InputDevice::Mouse;
-            sample.action = InputAction::MouseUp;
-            sample.x = me->pos().x();
-            sample.y = me->pos().y();
-            sample.mouseButton = mapMouseButtonFromQt(me->button());
-            sample.timeStampMs = QDateTime::currentMSecsSinceEpoch();
-            emit inputRawSampleReady(sample);
-            break;
-        }
-        case QEvent::MouseMove: {
-            auto* me = static_cast<QMouseEvent*>(event);
-            InputSample sample;
-            sample.kind = InputSampleKind::Request;
-            sample.device = InputDevice::Mouse;
-            sample.action = InputAction::MouseMove;
-            sample.x = me->pos().x();
-            sample.y = me->pos().y();
-            sample.timeStampMs = QDateTime::currentMSecsSinceEpoch();
-            emit inputRawSampleReady(sample);
-            break;
-        }
-
-        case QEvent::Wheel: {
-            auto* we = static_cast<QWheelEvent*>(event);
-            InputSample sample;
-            sample.kind = InputSampleKind::Request;
-            sample.device = InputDevice::Mouse;
-            sample.action = InputAction::MouseWheel;
-            sample.wheelDelta = we->angleDelta().y();
-            sample.timeStampMs = QDateTime::currentMSecsSinceEpoch();
-            emit inputRawSampleReady(sample);
-            break;
-        }
-        default:
-            break;
+    if (!inputControlActive_) {
+        inputControlActive_ = true;
+        emit inputControlActiveChanged(true);
     }
-    return QWidget::eventFilter(watched, event);
 }
+
+void VideoWidget::focusOutEvent(QFocusEvent* event) {
+    if (inputControlActive_) {
+        inputControlActive_ = false;
+        emit inputControlActiveChanged(false);
+    }
+
+    QWidget::focusOutEvent(event);
+}
+
+void VideoWidget::closeEvent(QCloseEvent* event) {
+    if (inputControlActive_) {
+        inputControlActive_ = false;
+        emit inputControlActiveChanged(false);
+    }
+
+    QWidget::closeEvent(event);
+}
+
 
 void VideoWidget::refreshFrame() {
     if (!frameDirty_) {
