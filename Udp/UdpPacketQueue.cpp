@@ -71,6 +71,17 @@ void UdpPacketQueue::sendPacketPerTick() {
 
     while (!currentPackets_.isEmpty() && sentCount < packetsPerTick_) {
         const PendingUdpPacket pending = currentPackets_.dequeue();
+/*
+        if (pending.packet.channel == UdpChannelType::Control
+            && pending.packet.type == UdpFrameType::Punch) {
+            qDebug() << "发送punch";
+            qDebug() << pending.address.toString() << pending.port;
+            //UdpPunchPayload payload;
+            //UdpControlPayloadCodec::decodePunch(pending.packet.payload, &payload);
+
+        }
+        */
+
         const QByteArray bytes = UdpPacketCodec::encode(pending.packet);
 
         const qint64 written = sock_->writeDatagram(

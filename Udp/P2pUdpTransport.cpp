@@ -149,6 +149,7 @@ void P2pUdpTransport::onReadyRead() {
             continue;
         }
 
+
         // 将packet及发送端公网ip和port提供给合成器，打包为帧
         reassembler_.pushPacket(packet, senderAddress, senderPort);
     }

@@ -11,9 +11,11 @@
 
 struct ServerConfig {
     QHostAddress tcpAddress = QHostAddress("118.195.142.123");
+    //QHostAddress tcpAddress = QHostAddress(QHostAddress::LocalHost);
     quint16 tcpPort = 9000;
 
     QHostAddress udpAddress = QHostAddress("118.195.142.123");
+    //QHostAddress udpAddress = QHostAddress(QHostAddress::LocalHost);
     quint16 udpPort = 9001;
 };
 
@@ -23,12 +25,12 @@ struct P2pConfig {
     quint16 punchPortRange = 32;
     int punchIntervalMs = 200;
 
-    int udpPacketsPerTick = 100;
+    int udpPacketsPerTick = 2;
     int udpFlushIntervalMs = 1;
 };
 
 struct VideoConfig {
-    quint16 fps = 30;
+    quint16 fps = 100;
 
     quint16 width = 1280;
     quint16 height = 720;
@@ -36,8 +38,8 @@ struct VideoConfig {
     quint16 jpegQuality = 50;
     VideoSampleCodecType codecType = VideoSampleCodecType::H264;
 
-    int h264BitrateKbps = 4000;
-    int h264GopFrames = 60;
+    int h264BitrateKbps = 1400;
+    int h264GopFrames = 15;
     int h264EncoderThreads = 1;
     QString h264Preset = "ultrafast";
     QString h264Tune = "zerolatency";

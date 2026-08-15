@@ -149,6 +149,7 @@ void P2pSessionWorker::sendPunch() {
     const QList<quint16> ports = punchCandidatePorts();
 
     for (quint16 port : ports) {
+        //qDebug() << "向" << peerAddress_.toString() << ":" << port <<"打洞";
         transport_.sendFrameTo(
                 peerAddress_,
                 port,
