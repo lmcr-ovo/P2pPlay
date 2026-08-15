@@ -35,20 +35,26 @@ QQueue<PendingUdpPacket> UdpPacketQueue::buildPendingFrame(
 
 void UdpPacketQueue::onPacketsReadyToSend(QQueue<UdpPacket> packets,
         const QHostAddress& peerAddress, quint16 PeerPort) {
+    if (packets.isEmpty()) {
+        return;
+    }
+
+    const bool isControl = packets.head().channel == UdpChannelType::Control;
+
     QQueue<PendingUdpPacket> framePackets = buildPendingFrame(
             packets,
             peerAddress,
             PeerPort);
 
-    if (framePackets.isEmpty()) {
-        return;
-    }
-
-    if (currentPackets_.isEmpty()) {
-        currentPackets_ = std::move(framePackets);
+    if (isControl) {
+        while (!framePackets.isEmpty()) {
+            controlQueue_.enqueue(framePackets.dequeue());
+        }
+    } else if (mediaCurrent_.isEmpty()) {
+        mediaCurrent_ = std::move(framePackets);
     } else {
-        pendingLatestPackets_ = std::move(framePackets);
-        hasPendingLatestPackets_ = true;
+        mediaPendingLatest_ = std::move(framePackets);
+        hasMediaPending_ = true;
     }
 
     if (!timer_.isActive()) {
@@ -56,58 +62,75 @@ void UdpPacketQueue::onPacketsReadyToSend(QQueue<UdpPacket> packets,
     }
 }
 
-void UdpPacketQueue::promotePendingFrame() {
-    if (!hasPendingLatestPackets_) {
+void UdpPacketQueue::promoteMediaPending() {
+    if (!hasMediaPending_) {
         return;
     }
 
-    currentPackets_ = std::move(pendingLatestPackets_);
-    pendingLatestPackets_.clear();
-    hasPendingLatestPackets_ = false;
+    mediaCurrent_ = std::move(mediaPendingLatest_);
+    mediaPendingLatest_.clear();
+    hasMediaPending_ = false;
 }
 
 void UdpPacketQueue::sendPacketPerTick() {
-    int sentCount = 0;
+    sendControlPackets();
+    sendMediaPackets();
 
-    while (!currentPackets_.isEmpty() && sentCount < packetsPerTick_) {
-        const PendingUdpPacket pending = currentPackets_.dequeue();
-/*
-        if (pending.packet.channel == UdpChannelType::Control
-            && pending.packet.type == UdpFrameType::Punch) {
-            qDebug() << "发送punch";
-            qDebug() << pending.address.toString() << pending.port;
-            //UdpPunchPayload payload;
-            //UdpControlPayloadCodec::decodePunch(pending.packet.payload, &payload);
+    if (controlQueue_.isEmpty()
+        && mediaCurrent_.isEmpty()
+        && !hasMediaPending_) {
+        timer_.stop();
+    }
+}
 
-        }
-        */
+void UdpPacketQueue::sendControlPackets() {
+    int sent = 0;
 
-        const QByteArray bytes = UdpPacketCodec::encode(pending.packet);
+    while (!controlQueue_.isEmpty() && sent < packetsPerTick_) {
+        const PendingUdpPacket pending = controlQueue_.dequeue();
 
-        const qint64 written = sock_->writeDatagram(
-                bytes, pending.address, pending.port);
-
-        if (written != bytes.size()) {
-            qDebug() << "udp send failed"
-                     << "target=" << pending.address.toString()
-                     << pending.port
-                     << "size=" << bytes.size()
-                     << "written=" << written
-                     << "error=" << sock_->error()
-                     << "errorString=" << sock_->errorString();
+        if (!writePacket(pending)) {
             continue;
         }
 
-        ++sentCount;
+        ++sent;
+    }
+}
+
+void UdpPacketQueue::sendMediaPackets() {
+    int sent = 0;
+
+    while (!mediaCurrent_.isEmpty() && sent < packetsPerTick_) {
+        const PendingUdpPacket pending = mediaCurrent_.dequeue();
+
+        if (!writePacket(pending)) {
+            continue;
+        }
+
+        ++sent;
     }
 
-    if (!currentPackets_.isEmpty()) {
-        return;
+    if (mediaCurrent_.isEmpty()) {
+        promoteMediaPending();
+    }
+}
+
+bool UdpPacketQueue::writePacket(const PendingUdpPacket& pending) {
+    const QByteArray bytes = UdpPacketCodec::encode(pending.packet);
+
+    const qint64 written = sock_->writeDatagram(
+            bytes, pending.address, pending.port);
+
+    if (written != bytes.size()) {
+        qDebug() << "udp send failed"
+                 << "target=" << pending.address.toString()
+                 << pending.port
+                 << "size=" << bytes.size()
+                 << "written=" << written
+                 << "error=" << sock_->error()
+                 << "errorString=" << sock_->errorString();
+        return false;
     }
 
-    promotePendingFrame();
-
-    if (currentPackets_.isEmpty()) {
-        timer_.stop();
-    }
+    return true;
 }

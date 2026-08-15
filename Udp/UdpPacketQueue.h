@@ -35,14 +35,20 @@ private:
     QQueue<PendingUdpPacket> buildPendingFrame(QQueue<UdpPacket>& packets,
                                                const QHostAddress& peerAddress,
                                                quint16 peerPort) const;
-    void promotePendingFrame();
+    bool writePacket(const PendingUdpPacket& pending);
+    void promoteMediaPending();
+    void sendControlPackets();
+    void sendMediaPackets();
 
 private:
     QUdpSocket* sock_;
     QTimer timer_;
-    QQueue<PendingUdpPacket> currentPackets_;
-    QQueue<PendingUdpPacket> pendingLatestPackets_;
-    bool hasPendingLatestPackets_ = false;
+    // 媒体：只保留最新帧（丢旧帧）
+    QQueue<PendingUdpPacket> mediaCurrent_;
+    QQueue<PendingUdpPacket> mediaPendingLatest_;
+    bool hasMediaPending_ = false;
+    // 控制：排队逐个发送（不丢）
+    QQueue<PendingUdpPacket> controlQueue_;
     int packetsPerTick_ = 32;
     int flushIntervalMs_ = 1;
 };
