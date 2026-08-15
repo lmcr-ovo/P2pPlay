@@ -5,6 +5,7 @@
 #include "NatProbeService.h"
 #include "UdpControlPayload.h"
 #include "UdpControlPayloadCodec.h"
+#include "UdpSocketUtil.h"
 
 NatProbeService::NatProbeService(QObject* parent)
     : QObject(parent),
@@ -22,6 +23,9 @@ bool NatProbeService::start(const QHostAddress& address, quint16 port) {
         emit errorOccurred(sock_.errorString());
         return false;
     }
+
+    disableUdpConnReset(&sock_); 
+
     return true;
 }
 

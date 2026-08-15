@@ -5,6 +5,7 @@
 #include "P2pSessionWorker.h"
 #include "UdpControlPayload.h"
 #include "UdpControlPayloadCodec.h"
+#include "UdpSocketUtil.h"
 
 P2pSessionWorker::P2pSessionWorker(QObject* parent)
         : sock_(this),
@@ -40,6 +41,9 @@ bool P2pSessionWorker::bind(quint16 localPort) {
         emit errorOccurred(sock_.errorString());
         return false;
     }
+
+    disableUdpConnReset(&sock_);
+
     return true;
 }
 

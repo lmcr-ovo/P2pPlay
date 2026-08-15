@@ -89,6 +89,11 @@ void UdpPacketQueue::sendControlPackets() {
     while (!controlQueue_.isEmpty() && sent < packetsPerTick_) {
         const PendingUdpPacket pending = controlQueue_.dequeue();
 
+        if (pending.packet.type == UdpFrameType::Punch) {
+            qDebug() << "发送punch";
+            qDebug() << pending.address.toString() << pending.port;
+        }
+
         if (!writePacket(pending)) {
             continue;
         }
