@@ -4,6 +4,7 @@
 
 #include "UdpPacketQueue.h"
 #include "UdpPacketCodec.h"
+#include "Video/VideoSampleCodec.h"
 
 UdpPacketQueue::UdpPacketQueue(QObject* parent, QUdpSocket* sock)
     : QObject(parent), sock_(sock), timer_(this) {
@@ -53,6 +54,15 @@ void UdpPacketQueue::onPacketsReadyToSend(QQueue<UdpPacket> packets,
     } else if (mediaCurrent_.isEmpty()) {
         mediaCurrent_ = std::move(framePackets);
     } else {
+        if (!mediaPendingLatest_.isEmpty()) {
+            quint32 droppedSeq = 0;
+            if (VideoSampleCodec::peekVideoSeq(
+                    mediaPendingLatest_.front().packet.payload,
+                    droppedSeq)) {
+                qDebug() << "丢弃媒体帧(被覆盖), sampleSeq =" << droppedSeq;
+            }
+        }
+
         mediaPendingLatest_ = std::move(framePackets);
         hasMediaPending_ = true;
     }

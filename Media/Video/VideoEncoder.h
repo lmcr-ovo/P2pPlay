@@ -39,7 +39,7 @@ private:
 
     bool ensureH264Encoder(int width, int height);
     void stopH264Encoder();
-    QByteArray drainH264Packets(quint32& sampleFlags);
+    QByteArray drainH264Packets(quint32& sampleFlags, quint32 sampleSeq);
 
     VideoSampleCodecType codecType_ = VideoSampleCodecType::Jpeg;
     quint16 jpegQuality_ = 50;
@@ -55,9 +55,13 @@ private:
     bool h264ForceIdr_ = true;
     bool forceNextKeyFrame_ = true;
 
+    // 编码器
     AVCodecContext* h264CodecContext_ = nullptr;
+    // 装YUV
     AVFrame* h264Frame_ = nullptr;
+    // 编码器输出结果
     AVPacket* h264Packet_ = nullptr;
+    // 将QImage的ARGB转为YUV
     SwsContext* h264SwsContext_ = nullptr;
     int h264Width_ = 0;
     int h264Height_ = 0;

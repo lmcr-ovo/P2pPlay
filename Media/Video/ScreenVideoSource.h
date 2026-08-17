@@ -31,7 +31,7 @@ private:
 
 private:
     QTimer timer_;
-    quint32 nextSampleSeq = 0;
+    quint32 nextSampleSeq_ = 0;
     quint16 intervalMs_ = 50;
     quint16 width_ = 640;
     quint16 height_ = 360;

@@ -10,12 +10,12 @@
 #include "Video/VideoSample.h"
 
 struct ServerConfig {
-    QHostAddress tcpAddress = QHostAddress("118.195.142.123");
-    //QHostAddress tcpAddress = QHostAddress(QHostAddress::LocalHost);
+    //QHostAddress tcpAddress = QHostAddress("118.195.142.123");
+    QHostAddress tcpAddress = QHostAddress(QHostAddress::LocalHost);
     quint16 tcpPort = 9000;
 
-    QHostAddress udpAddress = QHostAddress("118.195.142.123");
-    //QHostAddress udpAddress = QHostAddress(QHostAddress::LocalHost);
+    //QHostAddress udpAddress = QHostAddress("118.195.142.123");
+    QHostAddress udpAddress = QHostAddress(QHostAddress::LocalHost);
     quint16 udpPort = 9001;
 };
 
@@ -33,15 +33,16 @@ struct VideoConfig {
     quint16 fps = 100;
 
     quint16 width = 1280;
-    quint16 height = 720;
+    quint16 height = 800;
 
     quint16 jpegQuality = 50;
     VideoSampleCodecType codecType = VideoSampleCodecType::H264;
 
-    int h264BitrateKbps = 1400;
-    int h264GopFrames = 15;
+    int h264BitrateKbps = 3000;
+    int h264GopFrames = 30;
     int h264EncoderThreads = 1;
-    QString h264Preset = "ultrafast";
+    //QString h264Preset = "ultrafast";
+    QString h264Preset = "veryfast";
     QString h264Tune = "zerolatency";
     QString h264Profile = "baseline";
     bool h264RepeatHeaders = true;

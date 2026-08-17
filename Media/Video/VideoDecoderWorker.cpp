@@ -68,6 +68,7 @@ void VideoDecoderWorker::handleH264(VideoSample& sample) {
     const bool isKeyFrame =
             (sample.flags & VideoSampleFlag_KeyFrame) != 0;
 
+    // 断号检测
     if (hasLastH264Seq_ && sample.videoSeq != lastH264Seq_ + 1) {
         waitingForKeyFrame_ = true;
         stopH264Decoder();
@@ -78,6 +79,8 @@ void VideoDecoderWorker::handleH264(VideoSample& sample) {
     lastH264Seq_ = sample.videoSeq;
 
     if (waitingForKeyFrame_ && !isKeyFrame) {
+        qDebug() << QString("lastH264Seq_ = %1, 正在等关键帧 %2 不是关键帧 被跳过")
+            .arg(lastH264Seq_).arg(sample.videoSeq);
         requestKeyFrameIfNeeded();
         return;
     }
@@ -215,6 +218,7 @@ void VideoDecoderWorker::drainH264Frames(quint32 sampleSeq) {
                   destination,
                   destinationStride);
 
+        // 记录重组结束到解码为image的时间
         TraceManager::instance().record(sampleSeq,
                                         TraceStage::DecodeEnd,
                                         TraceManager::nowUs());

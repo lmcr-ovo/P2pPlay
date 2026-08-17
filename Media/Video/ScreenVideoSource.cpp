@@ -42,8 +42,8 @@ void ScreenVideoSource::screenShot() {
             Qt::KeepAspectRatio,
             Qt::FastTransformation);
 
-    TraceManager::instance().record(nextSampleSeq, TraceStage::CaptureEnd, TraceManager::nowUs());
-    emit videoImageReady(scaled, nextSampleSeq++);
+    TraceManager::instance().record(nextSampleSeq_, TraceStage::CaptureEnd, TraceManager::nowUs());
+    emit videoImageReady(scaled, nextSampleSeq_++);
 }
 
 QImage ScreenVideoSource::qtCaptureScreen() {

@@ -149,6 +149,7 @@ QByteArray VideoEncoderWorker::handleH264(const QImage& img, quint32 sampleSeq) 
         return QByteArray();
     }
 
+    // 重置画布
     if (av_frame_make_writable(h264Frame_) < 0) {
         return QByteArray();
     }
@@ -160,6 +161,7 @@ QByteArray VideoEncoderWorker::handleH264(const QImage& img, quint32 sampleSeq) 
             input.bytesPerLine()
     };
 
+    // 给画布H264Frame_填入数据
     sws_scale(h264SwsContext_,
               sourceSlice,
               sourceStride,
@@ -170,12 +172,15 @@ QByteArray VideoEncoderWorker::handleH264(const QImage& img, quint32 sampleSeq) 
 
     h264Frame_->pts = nextPts_++;
     if (forceNextKeyFrame_) {
+        // 强制下一帧为关键帧
         h264Frame_->pict_type = AV_PICTURE_TYPE_I;
         forceNextKeyFrame_ = false;
     } else {
+        // 编码器自己决定
         h264Frame_->pict_type = AV_PICTURE_TYPE_NONE;
     }
 
+    // 将h264Frame_数据输入编码器
     if (avcodec_send_frame(h264CodecContext_, h264Frame_) < 0) {
         return QByteArray();
     }
@@ -183,7 +188,7 @@ QByteArray VideoEncoderWorker::handleH264(const QImage& img, quint32 sampleSeq) 
     TraceManager::instance().record(sampleSeq, TraceStage::EncodeEnd, TraceManager::nowUs());
 
     quint32 sampleFlags = VideoSampleFlag_None;
-    QByteArray h264Bytes = drainH264Packets(sampleFlags);
+    QByteArray h264Bytes = drainH264Packets(sampleFlags, sampleSeq);
     if (h264Bytes.isEmpty()) {
         return QByteArray();
     }
@@ -318,11 +323,13 @@ bool VideoEncoderWorker::ensureH264Encoder(int width, int height) {
     return true;
 }
 
-QByteArray VideoEncoderWorker::drainH264Packets(quint32& sampleFlags) {
+QByteArray VideoEncoderWorker::drainH264Packets(quint32& sampleFlags, quint32 sampleSeq) {
     QByteArray result;
 
     while (avcodec_receive_packet(h264CodecContext_, h264Packet_) == 0) {
         if ((h264Packet_->flags & AV_PKT_FLAG_KEY) != 0) {
+            qDebug() << QString("输出关键帧, sampleSeq = %1 ")
+                .arg(sampleSeq);
             sampleFlags |= VideoSampleFlag_KeyFrame;
         }
 
