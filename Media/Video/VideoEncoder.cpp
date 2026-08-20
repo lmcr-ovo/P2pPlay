@@ -193,6 +193,36 @@ QByteArray VideoEncoderWorker::handleH264(const QImage& img, quint32 sampleSeq) 
         return QByteArray();
     }
 
+        // ---- α 实测统计（临时）----
+    static QQueue<int> idrWindow;   // 最近 5 个关键帧大小
+    static QQueue<int> pWindow;     // 最近 1 秒的普通帧大小
+
+    if (sampleFlags & VideoSampleFlag_KeyFrame) {
+        idrWindow.enqueue(h264Bytes.size());
+        if (idrWindow.size() > 5) idrWindow.dequeue();   // 窗口 = 5 个 IDR
+    } else {
+        pWindow.enqueue(h264Bytes.size());
+        if (pWindow.size() > fps_) pWindow.dequeue();    // 窗口 = 1 秒的帧数
+    }
+
+    if (!idrWindow.isEmpty() && !pWindow.isEmpty()) {
+        qint64 idrSum = 0;
+        for (int s : idrWindow) idrSum += s;
+        qint64 pSum = 0;
+        for (int s : pWindow) pSum += s;
+
+        const double avgIdr = idrSum / static_cast<double>(idrWindow.size());
+        const double avgP   = pSum / static_cast<double>(pWindow.size());
+        const double alpha  = avgIdr / avgP;
+
+        qDebug() << QString("[α实时] IDR窗口=%1B(%2帧) P窗口=%3B(%4帧) α=%5")
+                .arg(avgIdr, 0, 'f', 0)
+                .arg(idrWindow.size())
+                .arg(avgP, 0, 'f', 0)
+                .arg(pWindow.size())
+                .arg(alpha, 0, 'f', 2);
+    }
+
     VideoSample sample;
     sample.videoSeq = sampleSeq;
     sample.captureTimeStampMs =

@@ -4,7 +4,6 @@
 
 #include "UdpPacketQueue.h"
 #include "UdpPacketCodec.h"
-#include "Video/VideoSampleCodec.h"
 
 UdpPacketQueue::UdpPacketQueue(QObject* parent, QUdpSocket* sock)
     : QObject(parent), sock_(sock), timer_(this) {
@@ -51,20 +50,10 @@ void UdpPacketQueue::onPacketsReadyToSend(QQueue<UdpPacket> packets,
         while (!framePackets.isEmpty()) {
             controlQueue_.enqueue(framePackets.dequeue());
         }
-    } else if (mediaCurrent_.isEmpty()) {
-        mediaCurrent_ = std::move(framePackets);
     } else {
-        if (!mediaPendingLatest_.isEmpty()) {
-            quint32 droppedSeq = 0;
-            if (VideoSampleCodec::peekVideoSeq(
-                    mediaPendingLatest_.front().packet.payload,
-                    droppedSeq)) {
-                qDebug() << "丢弃媒体帧(被覆盖), sampleSeq =" << droppedSeq;
-            }
+        while (!framePackets.isEmpty()) {
+            mediaQueue_.enqueue(framePackets.dequeue());
         }
-
-        mediaPendingLatest_ = std::move(framePackets);
-        hasMediaPending_ = true;
     }
 
     if (!timer_.isActive()) {
@@ -72,23 +61,11 @@ void UdpPacketQueue::onPacketsReadyToSend(QQueue<UdpPacket> packets,
     }
 }
 
-void UdpPacketQueue::promoteMediaPending() {
-    if (!hasMediaPending_) {
-        return;
-    }
-
-    mediaCurrent_ = std::move(mediaPendingLatest_);
-    mediaPendingLatest_.clear();
-    hasMediaPending_ = false;
-}
-
 void UdpPacketQueue::sendPacketPerTick() {
     sendControlPackets();
     sendMediaPackets();
 
-    if (controlQueue_.isEmpty()
-        && mediaCurrent_.isEmpty()
-        && !hasMediaPending_) {
+    if (controlQueue_.isEmpty() && mediaQueue_.isEmpty()) {
         timer_.stop();
     }
 }
@@ -115,18 +92,14 @@ void UdpPacketQueue::sendControlPackets() {
 void UdpPacketQueue::sendMediaPackets() {
     int sent = 0;
 
-    while (!mediaCurrent_.isEmpty() && sent < packetsPerTick_) {
-        const PendingUdpPacket pending = mediaCurrent_.dequeue();
+    while (!mediaQueue_.isEmpty() && sent < packetsPerTick_) {
+        const PendingUdpPacket pending = mediaQueue_.dequeue();
 
         if (!writePacket(pending)) {
             continue;
         }
 
         ++sent;
-    }
-
-    if (mediaCurrent_.isEmpty()) {
-        promoteMediaPending();
     }
 }
 

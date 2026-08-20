@@ -25,12 +25,12 @@ struct P2pConfig {
     quint16 punchPortRange = 32;
     int punchIntervalMs = 200;
 
-    int udpPacketsPerTick = 2;
+    int udpPacketsPerTick = 64;
     int udpFlushIntervalMs = 1;
 };
 
 struct VideoConfig {
-    quint16 fps = 100;
+    quint16 fps = 60;
 
     quint16 width = 1280;
     quint16 height = 800;
@@ -38,8 +38,8 @@ struct VideoConfig {
     quint16 jpegQuality = 50;
     VideoSampleCodecType codecType = VideoSampleCodecType::H264;
 
-    int h264BitrateKbps = 3000;
-    int h264GopFrames = 30;
+    int h264BitrateKbps = 2500;
+    int h264GopFrames = 5 * fps;
     int h264EncoderThreads = 1;
     //QString h264Preset = "ultrafast";
     QString h264Preset = "veryfast";
