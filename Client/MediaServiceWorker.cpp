@@ -56,9 +56,9 @@ void MediaServiceWorker::onUdpMediaFrameReceived(const UdpFrame& frame) {
     switch (frame.frameType) {
         case UdpFrameType::VideoFrame:
         {
-            quint32 sampleId = 0;
-            if (VideoSampleCodec::peekVideoSeq(frame.payload, sampleId)) {
-                TraceManager::instance().record(sampleId,
+            quint32 sampleSeq = 0;
+            if (VideoSampleCodec::peekVideoSeq(frame.payload, sampleSeq)) {
+                TraceManager::instance().record(sampleSeq,
                                                 TraceStage::ReassembleEnd,
                                                 TraceManager::nowUs());
             }

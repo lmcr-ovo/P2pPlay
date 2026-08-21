@@ -22,6 +22,8 @@
 #include "Input/InputCapture.h"
 #include "Input/InputSender.h"
 #include "Input/InputReceiver.h"
+#include "RateController/RateController.h"
+#include "RateController/ReceiverMonitor.h"
 
 class ClientApp : public QObject {
     Q_OBJECT
@@ -78,6 +80,9 @@ private:
     InputCapture inputCapture_;
     InputSender inputSender_;
     InputReceiver inputReceiver_;
+
+    RateController rateController_;
+    ReceiverMonitor receiverMonitor_;
 };
 
 

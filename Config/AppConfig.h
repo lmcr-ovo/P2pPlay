@@ -10,12 +10,12 @@
 #include "Video/VideoSample.h"
 
 struct ServerConfig {
-    //QHostAddress tcpAddress = QHostAddress("118.195.142.123");
-    QHostAddress tcpAddress = QHostAddress(QHostAddress::LocalHost);
+    QHostAddress tcpAddress = QHostAddress("118.25.51.231");
+    //QHostAddress tcpAddress = QHostAddress(QHostAddress::LocalHost);
     quint16 tcpPort = 9000;
 
-    //QHostAddress udpAddress = QHostAddress("118.195.142.123");
-    QHostAddress udpAddress = QHostAddress(QHostAddress::LocalHost);
+    QHostAddress udpAddress = QHostAddress("118.25.51.231");
+    //QHostAddress udpAddress = QHostAddress(QHostAddress::LocalHost);
     quint16 udpPort = 9001;
 };
 
@@ -27,6 +27,8 @@ struct P2pConfig {
 
     int udpPacketsPerTick = 64;
     int udpFlushIntervalMs = 1;
+
+    quint16 kPace = 30; // 发送速率 = kPace × R
 };
 
 struct VideoConfig {
@@ -49,9 +51,36 @@ struct VideoConfig {
     bool h264ForceIdr = true;
     int h264KeyFrameRequestIntervalMs = 200;
 
+    double bppMin = 0.06;
+    double bppMax = 0.2;
+
+    // 丢包率
+    double lossHigh = 0.1;
+    double lossLow = 0.01;
+
+    // 码率升降系数
+    double upRate = 1.1;
+    double downRate = 0.7;
+
+    // 冷却时间
+    quint16 coolingPeriodMs = 1000;
+
+    double monitorPeriod = 1000;
+
+    quint16 checkIdlePeriod = 3000;
+
     quint16 frameIntervalMs() const {
         return fps > 0 ? 1000 / fps : 20;
     }
+
+    quint16 getBitrateKbpsMax() const {
+        return bppMax * width * height * fps / 1000;
+    }
+
+    quint16 getBitrateKbpsMin() const {
+        return bppMin * width * height * fps / 1000;
+    }
+
 };
 
 struct AppConfig {

@@ -27,8 +27,12 @@ P2pUdpTransport::P2pUdpTransport(QUdpSocket* sock, QObject* parent)
             this, [this](QAbstractSocket::SocketError err) {
         emit errorOccurred(sock_->errorString());
     });
+
     connect(this, &P2pUdpTransport::packetsReadyToSend,
             &packetQueue_, &UdpPacketQueue::onPacketsReadyToSend);
+
+    connect(&packetQueue_, &UdpPacketQueue::sendBlock,
+            this, &P2pUdpTransport::sendBlock);
 }
 
 void P2pUdpTransport::setPeerEndpoint(const QHostAddress& address, quint16 port) {

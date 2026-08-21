@@ -17,7 +17,9 @@ ClientApp::ClientApp()
       videoWidget_(nullptr),
       inputCapture_(this),
       inputSender_(this),
-      inputReceiver_(this) {
+      inputReceiver_(this),
+      rateController_(this),
+      receiverMonitor_(this) {
     qRegisterMetaType<InputSample>("InputSample");
     TraceManager::instance();
     connectCommonSignals();
@@ -79,13 +81,14 @@ bool ClientApp::startAsHost(const QString& clientId, const AppConfig& config) {
     hostRoleService_.setClientId(clientId);
     mediaService_.setRole(Role::Host);
 
-    p2pSession_.applyConfig(config.p2p);
+    p2pSession_.applyConfig(config);
     p2pSession_.setServerUdpEndpoint(
             config.server.udpAddress,
             config.server.udpPort
             );
 
     videoSenderPipeline_.applyConfig(config);
+    rateController_.applyConfig(config);
     if (!p2pSession_.bind(config.p2p.localUdpPort)) {
         return false;
     }
@@ -108,13 +111,15 @@ bool ClientApp::startAsGuest(const QString& clientId,
     guestRoleService_.setClientInfo(roomId, clientId);
     mediaService_.setRole(Role::Guest);
 
-    p2pSession_.applyConfig(config.p2p);
+    p2pSession_.applyConfig(config);
     p2pSession_.setServerUdpEndpoint(
             config.server.udpAddress,
             config.server.udpPort
     );
 
     videoRecevierPipline_.applyConfig(config);
+
+    receiverMonitor_.applyConfig(config);
 
     videoWidget_.applyConfig(config);
 
@@ -250,6 +255,37 @@ void ClientApp::connectRoleSignals() {
                 mediaService_.worker(),
                 &MediaServiceWorker::sendInputSampleBytes,
                 Qt::QueuedConnection));
+
+        //---------------------自适应系统----------------------------
+        // 通知控制器带宽受限
+        roleConnections_.append(connect(
+                p2pSession_.worker(),
+                &P2pSessionWorker::sendBlock,
+                &rateController_,
+                &RateController::onSendBlock
+                ));
+
+        // 通知编码器调整码率
+        roleConnections_.append(connect(
+                &rateController_,
+                &RateController::targetBitrateChanged,
+                videoSenderPipeline_.encoderWorker(),
+                &VideoEncoderWorker::onTargetBitrateChanged));
+
+        // 通知发送方调节速率
+        roleConnections_.append(connect(
+                    videoSenderPipeline_.encoderWorker(),
+                    &VideoEncoderWorker::changePacketsPerTick,
+                    p2pSession_.worker(),
+                    &P2pSessionWorker::onChangePacketsPerTick)
+                );
+
+        roleConnections_.append(connect(
+                p2pSession_.worker(),
+                &P2pSessionWorker::receiverReportBytesReceived,
+                &rateController_,
+                &RateController::onReceiverReportBytesReceived
+                ));
         return;
     }
 
@@ -337,6 +373,23 @@ void ClientApp::connectRoleSignals() {
                 &VideoWidget::inputControlActiveChanged,
                 inputCapture_.worker(),
                 &InputCaptureWorker::setControlActive,
+                Qt::QueuedConnection));
+
+        //------------------自适应系统------------------
+        roleConnections_.append(connect(
+                mediaService_.worker(),
+                &MediaServiceWorker::videoSampleBytesReceived,
+                receiverMonitor_.worker(),
+                &ReceiverMonitorWorker::onVideoSampleBytes
+                ));
+
+        roleConnections_.append(connect(
+                receiverMonitor_.worker(),
+                &ReceiverMonitorWorker::reportFrameBytesReady,
+                p2pSession_.worker(),
+                [worker = p2pSession_.worker()](const QByteArray& bytes) {
+                    worker->sendControlFrame(UdpFrameType::ReceiverReport, bytes);
+                },
                 Qt::QueuedConnection));
     }
 }

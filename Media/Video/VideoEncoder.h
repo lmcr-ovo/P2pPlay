@@ -27,11 +27,14 @@ public:
 
 signals:
     void videoSampleBytesReady(const QByteArray& sampleBytes);
+    void warningBitRateTooLow(quint16 bitRate);
+    void changePacketsPerTick(quint16 bitRate);
 
 public slots:
     void onVideoImageReady(const QImage &img,
                            quint32 sampleSeq);
     void requestKeyFrame();
+    void onTargetBitrateChanged(double rate);
 
 private:
     QByteArray handleJpeg(const QImage& img, quint32 sampleSeq);
@@ -66,6 +69,9 @@ private:
     int h264Width_ = 0;
     int h264Height_ = 0;
     qint64 nextPts_ = 0;
+
+    quint16 bitrateKbpsMax_ = 0;
+    quint16 bitrateKbpsMin_ = 0;
 };
 
 class VideoEncoder : public QObject {

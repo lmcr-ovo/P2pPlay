@@ -24,6 +24,9 @@ public:
     explicit UdpPacketQueue(QObject* parent, QUdpSocket* sock);
     void setTick(int packetPerTick, int flushIntervalMs);
 
+signals:
+    void sendBlock();
+
 public slots:
     void onPacketsReadyToSend(QQueue<UdpPacket> packets,
             const QHostAddress& peerAddress, quint16 PeerPort);

@@ -72,6 +72,9 @@ void VideoEncoderWorker::applyConfig(const AppConfig& config) {
     h264RepeatHeaders_ = config.video.h264RepeatHeaders;
     h264ForceIdr_ = config.video.h264ForceIdr;
     forceNextKeyFrame_ = true;
+
+    bitrateKbpsMax_ = config.video.getBitrateKbpsMax();
+    bitrateKbpsMin_ = config.video.getBitrateKbpsMin();
     stopH264Encoder();
 }
 
@@ -104,6 +107,41 @@ void VideoEncoderWorker::requestKeyFrame() {
     forceNextKeyFrame_ = true;
 }
 
+void VideoEncoderWorker::onTargetBitrateChanged(double rate) {
+    if (rate <= 0) {
+        return;
+    }
+
+    // 新码率 = 当前码率 × 因子
+    quint16 newBitRate = 0;
+    if (rate > 1.0) {
+        auto r1 = static_cast<quint16>(h264BitrateKbps_ * rate);
+        auto r2 = static_cast<quint16>((bitrateKbpsMax_ + h264BitrateKbps_) / 2);
+        newBitRate = qMin(r1, r2);
+    } else {
+        newBitRate = qMax(
+                static_cast<quint16>(h264BitrateKbps_ * rate),
+                static_cast<quint16>(bitrateKbpsMin_ / 2));
+        if (newBitRate < bitrateKbpsMin_) {
+            emit warningBitRateTooLow(newBitRate);
+        }
+    }
+
+    qDebug() << QString("[自适应][host] 码率 %1 → %2 kbps (rate=%3) minR = %4 maxR = %5")
+            .arg(h264BitrateKbps_)
+            .arg(newBitRate)
+            .arg(QString::number(rate))
+            .arg(bitrateKbpsMin_)
+            .arg(bitrateKbpsMax_);
+
+    h264BitrateKbps_ = newBitRate;
+
+    if (h264CodecContext_ != nullptr) {
+        // bit_rate 单位是 bps，所以 newBitrate(kbps) × 1000
+        h264CodecContext_->bit_rate = static_cast<int64_t>(newBitRate) * 1000;
+    }
+    emit changePacketsPerTick(newBitRate);
+}
 QByteArray VideoEncoderWorker::handleJpeg(const QImage &img,
         quint32 sampleSeq) {
     QByteArray bytes;
@@ -214,13 +252,14 @@ QByteArray VideoEncoderWorker::handleH264(const QImage& img, quint32 sampleSeq) 
         const double avgIdr = idrSum / static_cast<double>(idrWindow.size());
         const double avgP   = pSum / static_cast<double>(pWindow.size());
         const double alpha  = avgIdr / avgP;
-
+        /*
         qDebug() << QString("[α实时] IDR窗口=%1B(%2帧) P窗口=%3B(%4帧) α=%5")
                 .arg(avgIdr, 0, 'f', 0)
                 .arg(idrWindow.size())
                 .arg(avgP, 0, 'f', 0)
                 .arg(pWindow.size())
                 .arg(alpha, 0, 'f', 2);
+                */
     }
 
     VideoSample sample;

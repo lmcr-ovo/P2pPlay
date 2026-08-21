@@ -22,7 +22,7 @@ Q_OBJECT
 public:
     explicit P2pSessionWorker(QObject* parent = nullptr);
 
-    void applyConfig(const P2pConfig& config);
+    void applyConfig(const AppConfig& config);
     bool bind(quint16 localPort);
     void setClientInfo(const QString& roomId, const QString& clientId);
     void setServerUdpEndpoint(const QHostAddress& address, quint16 port);
@@ -33,11 +33,15 @@ signals:
     void mediaFrameReceived(const UdpFrame& frame);
     void errorOccurred(const QString& reason);
     void logReceived(const QString& message);
+    void receiverReportBytesReceived(const QByteArray& sampleBytes);
+    void sendBlock();
 
 public slots:
     void onProbePermitted(const SignalingMessage& message);
     void onPeerEndpoint(const SignalingMessage& message);
     void sendMediaFrame(UdpFrameType type, const QByteArray& payload);
+    void sendControlFrame(UdpFrameType type, const QByteArray& payload);
+    void onChangePacketsPerTick(quint16 bitRate);
 
 private slots:
     void onFrameReady(const UdpFrame& frame);
@@ -67,8 +71,11 @@ private:
     quint16 punchPortRange_ = 32;
     bool p2pReady_ = false;
 
-
     QString peerClientId_;
+
+    quint16 udpPacketsPerTick_ = 0;
+    quint16 udpFlushIntervalMs_ = 10;
+    quint16 kPace_ = 0;
 };
 
 #endif //P2PPLAY_P2PSESSIONWORKER_H

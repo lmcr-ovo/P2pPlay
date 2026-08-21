@@ -50,6 +50,11 @@ endif()
 
 #----------------------------------------------------------------------------------------
 add_library(Media
+        RateController/RateController.h RateController/RateController.cpp
+        RateController/ReceiverReportSample.h RateController/ReceiverReportSample.cpp
+        RateController/ReceiverMonitor.h RateController/ReceiverMonitor.cpp
+        RateController/ReceiverMonitorWorker.h RateController/ReceiverMonitorWorker.cpp
+
         VideoWidget.h VideoWidget.cpp
 
         Video/VideoSample.h

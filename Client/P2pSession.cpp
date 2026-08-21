@@ -37,7 +37,7 @@ P2pSession::~P2pSession() {
     worker_ = nullptr;
 }
 
-void P2pSession::applyConfig(const P2pConfig &config) {
+void P2pSession::applyConfig(const AppConfig &config) {
     P2pSessionWorker* worker = worker_;
 
     QMetaObject::invokeMethod(

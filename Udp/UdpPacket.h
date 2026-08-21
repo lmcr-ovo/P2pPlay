@@ -17,6 +17,7 @@ enum class UdpFrameType : quint16 {
     ProbeAck = 2,
     Punch = 3,
     PunchAck = 4,
+    ReceiverReport = 9,
 
     // Media
     VideoFrame = 5,

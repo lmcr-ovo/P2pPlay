@@ -31,7 +31,7 @@ public:
 signals:
     void errorOccurred(const QString& reason);
     void frameReady(const UdpFrame& frame);
-    void frameDropped(quint32 frameSeq);
+    void sendBlock();
     void packetsReadyToSend(QQueue<UdpPacket> packets,
             const QHostAddress& peerAddress,
             quint16 peerPort);

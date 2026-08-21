@@ -23,7 +23,7 @@ class P2pSession : public QObject {
 public:
     explicit P2pSession(QObject* parent);
     ~P2pSession() override;
-    void applyConfig(const P2pConfig& config);
+    void applyConfig(const AppConfig& config);
     bool bind(quint16 localPort);
     void setClientInfo(const QString& roomId, const QString& clientId);
     void setServerUdpEndpoint(const QHostAddress& address, quint16 port);

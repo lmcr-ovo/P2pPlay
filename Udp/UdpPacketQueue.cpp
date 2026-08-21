@@ -2,6 +2,7 @@
 // Created by ASUS on 2026/7/29.
 //
 
+#include <windows.h>
 #include "UdpPacketQueue.h"
 #include "UdpPacketCodec.h"
 
@@ -96,6 +97,8 @@ void UdpPacketQueue::sendMediaPackets() {
         const PendingUdpPacket pending = mediaQueue_.dequeue();
 
         if (!writePacket(pending)) {
+            mediaQueue_.enqueue(pending);
+            emit sendBlock();
             continue;
         }
 
@@ -110,7 +113,9 @@ bool UdpPacketQueue::writePacket(const PendingUdpPacket& pending) {
             bytes, pending.address, pending.port);
 
     if (written != bytes.size()) {
-        qDebug() << "udp send failed"
+        int error = WSAGetLastError();
+        qDebug() << "错误码" << error
+                 << "udp send failed"
                  << "target=" << pending.address.toString()
                  << pending.port
                  << "size=" << bytes.size()

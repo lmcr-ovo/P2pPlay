@@ -3,6 +3,7 @@
 //
 
 #include "P2pSessionWorker.h"
+#include "UdpPacket.h"
 #include "UdpControlPayload.h"
 #include "UdpControlPayloadCodec.h"
 #include "UdpSocketUtil.h"
@@ -20,15 +21,24 @@ P2pSessionWorker::P2pSessionWorker(QObject* parent)
             this, &P2pSessionWorker::errorOccurred);
     connect(&punchTimer_, &QTimer::timeout,
             this, &P2pSessionWorker::sendPunch);
+
+    // 发送速率高于网络带宽
+    connect(&transport_, &P2pUdpTransport::sendBlock,
+            this, &P2pSessionWorker::sendBlock);
+
     punchTimer_.setInterval(200);
 }
 
-void P2pSessionWorker::applyConfig(const P2pConfig &config) {
-    punchPortRange_ = config.punchPortRange;
-    punchTimer_.setInterval(config.punchIntervalMs);
+void P2pSessionWorker::applyConfig(const AppConfig &config) {
+    punchPortRange_ = config.p2p.punchPortRange;
+    punchTimer_.setInterval(config.p2p.punchIntervalMs);
 
-    transport_.setTick(config.udpPacketsPerTick,
-                       config.udpFlushIntervalMs);
+    udpPacketsPerTick_ = config.p2p.udpPacketsPerTick;
+    udpFlushIntervalMs_ = config.p2p.udpFlushIntervalMs;
+    kPace_ = config.p2p.kPace;
+
+    transport_.setTick(udpPacketsPerTick_,
+                       udpFlushIntervalMs_);
 }
 
 bool P2pSessionWorker::bind(quint16 localPort) {
@@ -206,7 +216,9 @@ void P2pSessionWorker::onFrameReady(const UdpFrame &frame) {
         case UdpFrameType::PunchAck :
             handlePunchAck(frame);
             break;
-
+        case UdpFrameType::ReceiverReport :
+            emit receiverReportBytesReceived(frame.payload);
+            break;
         default:
             break;
     }
@@ -291,4 +303,14 @@ void P2pSessionWorker::markP2pReady(const QHostAddress &address, quint16 port) {
 
 void P2pSessionWorker::sendMediaFrame(UdpFrameType type, const QByteArray& payload) {
     transport_.sendFrame(UdpChannelType::Media, type, payload);
+}
+
+void P2pSessionWorker::sendControlFrame(UdpFrameType type, const QByteArray& payload) {
+    transport_.sendFrame(UdpChannelType::Control, type, payload);
+}
+
+void P2pSessionWorker::onChangePacketsPerTick(quint16 bitRate) {
+    udpPacketsPerTick_ = static_cast<quint16>
+            (kPace_ * bitRate * udpFlushIntervalMs_ / 8 / UdpPacket::MaxPayloadSize);
+    transport_.setTick(udpPacketsPerTick_, udpFlushIntervalMs_);
 }
