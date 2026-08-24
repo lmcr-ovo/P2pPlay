@@ -15,6 +15,7 @@ namespace {
         if (code == HC_ACTION && activeCapture != nullptr) {
             const auto* info = reinterpret_cast<KBDLLHOOKSTRUCT*>(lParam);
 
+            // 过滤本机测试
             if ((info->flags & LLKHF_INJECTED) != 0) {
                 return CallNextHookEx(nullptr, code, wParam, lParam);
             }
@@ -26,12 +27,14 @@ namespace {
                     wParam == WM_KEYUP || wParam == WM_SYSKEYUP;
 
             if (pressed || released) {
+                // 满足条件，吃掉事件
                 if (activeCapture->handleKeyboardEvent(info->vkCode, pressed)) {
                     return 1;
                 }
             }
         }
 
+        // 不满足条件，传递给下一个钩子
         return CallNextHookEx(nullptr, code, wParam, lParam);
     }
 }
@@ -70,6 +73,7 @@ bool InputCaptureWorker::start() {
         return true;
     }
 
+    // 给全局指针赋值，便与windows回调
     activeCapture = this;
 
     keyboardHook_ = SetWindowsHookExW(

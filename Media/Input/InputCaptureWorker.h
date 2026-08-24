@@ -23,6 +23,7 @@ public slots:
     bool start();
     void stop();
 
+    // 窗口被选中，钩子生效
     void setControlActive(bool active);
     void setKeyMapping(quint32 fromVk, quint32 toVk);
     void clearKeyMappings();

@@ -20,6 +20,7 @@ signals:
 
 public slots:
     void onInputRawSampleReady(const InputSample& rawSample);
+
     // 处理ack包
     void onInputAckSampleBytesReady(const QByteArray& bytes);
 
