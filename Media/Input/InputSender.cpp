@@ -2,26 +2,59 @@
 // Created by ASUS on 2026/8/13.
 //
 
+#include <QDateTime>
 #include "InputSender.h"
+#include "InputSampleCodec.h"
 
 InputSender::InputSender(QObject* parent)
-    : QObject(parent) {
-    thread_ = new QThread(this);
-    worker_ = new InputSenderWorker;
-
-    worker_->moveToThread(thread_);
-    connect(thread_, &QThread::finished,
-            worker_, &QObject::deleteLater);
-    thread_->start();
+    : QObject(parent),
+    timer_(this) {
+    timer_.setInterval(200);
+    connect(&timer_, &QTimer::timeout,
+            this, &InputSender::checkRepost);
+    timer_.start();
 }
 
-InputSender::~InputSender() {
-    disconnect(worker_, nullptr, nullptr, nullptr);
-    thread_->quit();
-    thread_->wait();
-    worker_ = nullptr;
+void InputSender::onInputRawSampleReady(const InputSample &rawSample) {
+    if (!isReliableInputAction(rawSample.action)) return;
+
+    InputSample sample = rawSample;
+    sample.seq = nextSeq_++;
+    sample.timeStampMs = QDateTime::currentMSecsSinceEpoch();
+    waitToBeAck_.push_back(sample);
+
+    emit inputSampleBytesReady(InputSampleCodec::encode(sample));
 }
 
-InputSenderWorker* InputSender::worker() const {
-    return worker_;
+void InputSender::onInputAckSampleBytesReady(const QByteArray& bytes) {
+    InputSample sample;
+    if (!InputSampleCodec::decode(bytes, sample)) {
+        return;
+    }
+    if (!isReliableInputAction(sample.action)
+        || sample.kind != InputSampleKind::Ack) {
+        return;
+    }
+
+    quint32 ackSeq = sample.ackSeq;
+    while (!waitToBeAck_.isEmpty()
+        && waitToBeAck_.front().seq <= ackSeq) {
+        waitToBeAck_.dequeue();
+    }
+}
+
+void InputSender::checkRepost() {
+    quint16 checked = 0;
+    quint64 currTimeMs = QDateTime::currentMSecsSinceEpoch();
+    for (const auto& sample : waitToBeAck_) {
+        if (checked >= checkPerTick_) {
+            return;
+        }
+
+        checked += 1;
+        if (sample.timeStampMs < currTimeMs
+            && currTimeMs - sample.timeStampMs > expireMs_) {
+            emit inputSampleBytesReady(InputSampleCodec::encode(sample));
+        }
+    }
 }

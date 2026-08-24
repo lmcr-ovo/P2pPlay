@@ -22,6 +22,7 @@
 #include "Input/InputCapture.h"
 #include "Input/InputSender.h"
 #include "Input/InputReceiver.h"
+#include "Input/InputService.h"
 #include "RateController/RateController.h"
 #include "RateController/ReceiverMonitor.h"
 
@@ -77,9 +78,10 @@ private:
     VideoRecevierPipline videoRecevierPipline_;
     VideoWidget videoWidget_;
 
-    InputCapture inputCapture_;
+    //InputCapture inputCapture_;
     InputSender inputSender_;
     InputReceiver inputReceiver_;
+    InputService inputService_;
 
     RateController rateController_;
     ReceiverMonitor receiverMonitor_;

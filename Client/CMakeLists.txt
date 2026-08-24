@@ -1,5 +1,5 @@
 add_library(Client
-            Role.h
+        ../Common/Role.h
             ClientApp.h ClientApp.cpp
             SignalingClient.h SignalingClient.cpp
             ClientDispatcher.h ClientDispatcher.cpp

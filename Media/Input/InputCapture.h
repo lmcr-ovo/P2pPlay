@@ -6,25 +6,46 @@
 #define P2PPLAY_INPUTCAPTURE_H
 
 #include <QObject>
-#include <QThread>
-#include "InputCaptureWorker.h"
+#include <QHash>
+#include <QSet>
+#include "InputSample.h"
 
 class InputCapture : public QObject {
-Q_OBJECT
+    Q_OBJECT
 
 public:
-    explicit InputCapture(QObject* parent = nullptr);
+    explicit InputCapture(QObject* parent);
     ~InputCapture() override;
 
-    InputCaptureWorker* worker() const;
+    bool handleKeyboardEvent(quint32 vk, bool pressed);
 
 public slots:
-    void start();
+    bool start();
     void stop();
 
+    // 窗口被选中，钩子生效
+    void setControlActive(bool active);
+    void setKeyMapping(quint32 fromVk, quint32 toVk);
+    void clearKeyMappings();
+
+signals:
+    void inputRawSampleReady(const InputSample& sample);
+    void errorOccurred(const QString& reason);
+    void logReceived(const QString& message);
+
 private:
-    QThread* thread_ = nullptr;
-    InputCaptureWorker* worker_ = nullptr;
+    quint32 mapKey(quint32 vk, bool pressed);
+
+private:
+    void* keyboardHook_ = nullptr;
+
+    bool controlActive_ = false;
+    bool blockLocalInput_ = true;
+
+    QHash<quint32, quint32> keyMappings_;
+    QHash<quint32, quint32> activeMappings_;
+    QSet<quint32> pressedKeys_;
 };
 
-#endif // P2PPLAY_INPUTCAPTURE_H
+
+#endif //P2PPLAY_INPUTCAPTURE_H

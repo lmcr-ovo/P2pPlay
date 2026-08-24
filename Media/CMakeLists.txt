@@ -70,12 +70,11 @@ add_library(Media
         Input/InputSample.h
         Input/InputSampleCodec.h Input/InputSampleCodec.cpp
         Input/InputCapture.h Input/InputCapture.cpp
-        Input/InputCaptureWorker.h Input/InputCaptureWorker.cpp
         Input/InputSender.h Input/InputSender.cpp
-        Input/InputSenderWorker.h Input/InputSenderWorker.cpp
         Input/InputReceiver.h Input/InputReceiver.cpp
-        Input/InputReceiverWorker.h Input/InputReceiverWorker.cpp
         Input/InputInjector.h Input/InputInjector.cpp
+        Input/InputService.h Input/InputService.cpp
+        Input/InputSender.h Input/InputServiceWorker.cpp
         )
 
 
@@ -91,6 +90,7 @@ target_link_libraries(Media PUBLIC
         Qt5::Widgets
         Tcp
         Config
+        Common
         Logger
         "${FFMPEG_AVCODEC_LIBRARY}"
         "${FFMPEG_SWSCALE_LIBRARY}"

@@ -6,19 +6,25 @@
 #define P2PPLAY_INPUTRECEIVER_H
 
 #include <QObject>
-#include <QThread>
-#include "InputReceiverWorker.h"
+#include "InputSample.h"
 
 class InputReceiver : public QObject {
     Q_OBJECT
 public:
-    explicit InputReceiver(QObject* parent);
-    ~InputReceiver() override;
-    InputReceiverWorker* worker() const;
+    explicit InputReceiver(QObject* parent = nullptr);
+
+signals:
+    void inputAckSampleBytesReady(const QByteArray& bytes);
+
+public slots:
+    void onInputSampleBytesReady(const QByteArray& bytes);
 
 private:
-    QThread* thread_ = nullptr;
-    InputReceiverWorker* worker_ = nullptr;
+    static void handleKeyBoard(const InputSample& sample);
+    void sendAck(const quint32 ackSeq);
+
+private:
+    quint32 expectedSeq = 0;
 };
 
 

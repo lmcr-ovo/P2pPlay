@@ -6,19 +6,34 @@
 #define P2PPLAY_INPUTSENDER_H
 
 #include <QObject>
-#include <QThread>
-#include "InputSenderWorker.h"
+#include <QTimer>
+#include <QQueue>
+#include "InputSample.h"
 
 class InputSender : public QObject {
     Q_OBJECT
 public:
-    explicit InputSender(QObject* parent);
-    ~InputSender() override;
-    InputSenderWorker* worker() const;
+    explicit InputSender(QObject* parent = nullptr);
+
+signals:
+    void inputSampleBytesReady(const QByteArray& bytes);
+
+public slots:
+    void onInputRawSampleReady(const InputSample& rawSample);
+
+    // 处理ack包
+    void onInputAckSampleBytesReady(const QByteArray& bytes);
+
+private slots:
+    void checkRepost();
 
 private:
-    QThread* thread_ = nullptr;
-    InputSenderWorker* worker_ = nullptr;
+    QTimer timer_;
+    QQueue<InputSample> waitToBeAck_;
+    quint32 nextSeq_ = 0;
+    quint16 intervalMs_ = 200;
+    quint16 checkPerTick_ = 50;
+    quint16 expireMs_ = 200;
 };
 
 

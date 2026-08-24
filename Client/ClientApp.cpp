@@ -15,9 +15,10 @@ ClientApp::ClientApp()
       videoSenderPipeline_(this),
       videoRecevierPipline_(this),
       videoWidget_(nullptr),
-      inputCapture_(this),
-      inputSender_(this),
-      inputReceiver_(this),
+      //inputCapture_(this),
+      //inputSender_(this),
+      //inputReceiver_(this),
+      inputService_(this),
       rateController_(this),
       receiverMonitor_(this) {
     qRegisterMetaType<InputSample>("InputSample");
@@ -98,6 +99,8 @@ bool ClientApp::startAsHost(const QString& clientId, const AppConfig& config) {
             config.server.tcpAddress,
             config.server.tcpPort
             );
+
+    inputService_.setRole(Role::Host);
     return true;
 }
 
@@ -134,6 +137,8 @@ bool ClientApp::startAsGuest(const QString& clientId,
             config.server.tcpPort
     );
 
+    inputService_.setRole(Role::Guest);
+
     return true;
 }
 
@@ -159,6 +164,8 @@ void ClientApp::connectCommonSignals() {
     });
 
 //////////////////////////////////////////////////////////////////////////////////
+
+    // 多媒体业务向p2pSession请求发送媒体帧
     connect(mediaService_.worker(),
             &MediaServiceWorker::udpMediaFrameToSend,
             p2pSession_.worker(),
@@ -171,12 +178,7 @@ void ClientApp::connectCommonSignals() {
     connect(&p2pSession_, &P2pSession::mediaFrameReceived,
             mediaService_.worker(),
             &MediaServiceWorker::onUdpMediaFrameReceived);
-    //connect(&p2pSession_, &P2pSession::p2pReady,
-            //&mediaService_, &MediaService::onP2pReady);
-    //connect(&p2pSession_, &P2pSession::mediaFrameReceived,
-            //&mediaService_, &MediaService::onUdpMediaFrameReceived);
-    //connect(&mediaService_, &MediaService::udpMediaFrameToSend,
-            //&p2pSession_, &P2pSession::sendMediaFrame);
+
     connect(&mediaService_, &MediaService::logReceived,
             this, &ClientApp::logReceived);
     connect(&mediaService_, &MediaService::errorOccurred,
@@ -192,6 +194,32 @@ void ClientApp::connectCommonSignals() {
 
     connect(&p2pSession_, &P2pSession::logReceived,
             this, &ClientApp::logReceived);
+
+    // 通知输入服务开始启动
+    connect(&p2pSession_, &P2pSession::p2pReady,
+            &inputService_, &InputService::start);
+
+    connect(&videoWidget_, &VideoWidget::inputControlActiveChanged,
+            &inputService_, &InputService::setControlActive);
+
+    // 输入服务向多媒体服务请求发送InputSampleBytes
+    connect(inputService_.worker(),
+            &InputServiceWorker::inputSampleBytesReady,
+            mediaService_.worker(),
+            &MediaServiceWorker::sendInputSampleBytes);
+
+    // 处理host发回的Ack
+    connect(mediaService_.worker(),
+            &MediaServiceWorker::inputSampleBytesReceived,
+            inputService_.worker(),
+            &InputServiceWorker::onInputSampleBytesReceived
+            );
+
+    // 接收方回复Ack
+    connect(inputService_.worker(),
+            &InputServiceWorker::inputAckSampleBytesReady,
+            mediaService_.worker(),
+            &MediaServiceWorker::sendInputSampleBytes);
 }
 
 void ClientApp::connectRoleSignals() {
@@ -241,20 +269,6 @@ void ClientApp::connectRoleSignals() {
                 videoSenderPipeline_.encoderWorker(),
                 &VideoEncoderWorker::requestKeyFrame));
 
-        //-------------------------------按键--------------------------------
-        roleConnections_.append(connect(
-                mediaService_.worker(),
-                &MediaServiceWorker::inputSampleBytesReceived,
-                inputReceiver_.worker(),
-                &InputReceiverWorker::onInputSampleBytesReady,
-                Qt::QueuedConnection));
-
-        roleConnections_.append(connect(
-                inputReceiver_.worker(),
-                &InputReceiverWorker::inputAckSampleBytesReady,
-                mediaService_.worker(),
-                &MediaServiceWorker::sendInputSampleBytes,
-                Qt::QueuedConnection));
 
         //---------------------自适应系统----------------------------
         // 通知控制器带宽受限
@@ -332,49 +346,6 @@ void ClientApp::connectRoleSignals() {
                 },
                 Qt::QueuedConnection));
 
-        //------------------------按键------------------------------
-        /*
-        roleConnections_.append(connect(
-                &videoWidget_,
-                &VideoWidget::inputRawSampleReady,
-                inputSender_.worker(),
-                &InputSenderWorker::onInputRawSampleReady,
-                Qt::QueuedConnection));
-                */
-        roleConnections_.append(connect(
-                &p2pSession_,
-                &P2pSession::p2pReady,
-                inputCapture_.worker(),
-                &InputCaptureWorker::start));
-
-        roleConnections_.append(connect(
-                inputCapture_.worker(),
-                &InputCaptureWorker::inputRawSampleReady,
-                inputSender_.worker(),
-                &InputSenderWorker::onInputRawSampleReady,
-                Qt::QueuedConnection));
-
-        roleConnections_.append(connect(
-                inputSender_.worker(),
-                &InputSenderWorker::inputSampleBytesReady,
-                mediaService_.worker(),
-                &MediaServiceWorker::sendInputSampleBytes,
-                Qt::QueuedConnection));
-
-        roleConnections_.append(connect(
-                mediaService_.worker(),
-                &MediaServiceWorker::inputSampleBytesReceived,
-                inputSender_.worker(),
-                &InputSenderWorker::onInputAckSampleBytesReady,
-                Qt::QueuedConnection));
-
-        roleConnections_.append(connect(
-                &videoWidget_,
-                &VideoWidget::inputControlActiveChanged,
-                inputCapture_.worker(),
-                &InputCaptureWorker::setControlActive,
-                Qt::QueuedConnection));
-
         //------------------自适应系统------------------
         roleConnections_.append(connect(
                 mediaService_.worker(),
@@ -387,7 +358,7 @@ void ClientApp::connectRoleSignals() {
                 receiverMonitor_.worker(),
                 &ReceiverMonitorWorker::reportFrameBytesReady,
                 p2pSession_.worker(),
-                [worker = p2pSession_.worker()](const QByteArray& bytes) {
+                [worker = p2pSession_.worker()] (const QByteArray& bytes) {
                     worker->sendControlFrame(UdpFrameType::ReceiverReport, bytes);
                 },
                 Qt::QueuedConnection));
@@ -401,5 +372,4 @@ void ClientApp::clearRoleConnections() {
 
     roleConnections_.clear();
 
-    inputCapture_.stop();
 }
