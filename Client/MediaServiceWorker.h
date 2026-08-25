@@ -29,17 +29,12 @@ public slots:
 
     bool sendVideoSampleBytes(const QByteArray& payload);
     bool sendAudioSampleBytes(const QByteArray& sampleBytes);
-    bool sendInputSampleBytes(const QByteArray& sampleBytes);
-    bool sendKeyFrameRequest();
 
 signals:
     void videoSampleBytesReceived(const QByteArray& sampleBytes);
     void audioSampleBytesReceived(const QByteArray& sampleBytes);
-    void inputSampleBytesReceived(const QByteArray& sampleBytes);
-    void keyFrameRequestReceived(const QByteArray& payload);
 
     void udpMediaFrameToSend(UdpFrameType type, const QByteArray& payload);
-    void udpControlFrameToSend(UdpFrameType type, const QByteArray& payload);
 
     void logReceived(const QString& message);
     void errorOccurred(const QString& reason);

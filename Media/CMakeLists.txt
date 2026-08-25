@@ -64,7 +64,7 @@ add_library(Media
         Video/VideoSenderPipeline.h Video/VideoSenderPipeline.cpp
         Video/VideoDecoder.h Video/VideoDecoder.cpp
         Video/VideoDecoderWorker.h Video/VideoDecoderWorker.cpp
-        Video/VideoReceiverPipline.h Video/VideoReceiverPipline.cpp
+        Video/VideoReceiverPipeline.h Video/VideoReceiverPipeline.cpp
 
         #-----------------------------按键----------------------------------
         Input/InputSample.h
@@ -74,7 +74,7 @@ add_library(Media
         Input/InputReceiver.h Input/InputReceiver.cpp
         Input/InputInjector.h Input/InputInjector.cpp
         Input/InputService.h Input/InputService.cpp
-        Input/InputSender.h Input/InputServiceWorker.cpp
+        Input/InputServiceWorker.h Input/InputServiceWorker.cpp
         )
 
 

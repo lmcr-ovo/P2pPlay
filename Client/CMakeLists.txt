@@ -9,6 +9,8 @@ add_library(Client
             GuestRoleService.h GuestRoleService.cpp
             MediaService.h MediaService.cpp
             MediaServiceWorker.h MediaServiceWorker.cpp
+            ControlService.h ControlService.cpp
+            ControlServiceWorker.h ControlServiceWorker.cpp
             )
 
 target_include_directories(Client PUBLIC

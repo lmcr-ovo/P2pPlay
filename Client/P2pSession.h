@@ -32,14 +32,12 @@ public:
 
 signals:
     void p2pReady(const QHostAddress& address, quint16 port);
-    void mediaFrameReceived(const UdpFrame& frame);
     void errorOccurred(const QString& reason);
     void logReceived(const QString& message);
 
 public slots:
     void onProbePermitted(const SignalingMessage& message);
     void onPeerEndpoint(const SignalingMessage& message);
-    void sendMediaFrame(UdpFrameType type, const QByteArray& payload);
 
 private:
     QThread* thread_ = nullptr;

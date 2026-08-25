@@ -10,14 +10,12 @@ ClientApp::ClientApp()
       dispatcher_(this),
       p2pSession_(this),
       mediaService_(this),
+      controlService_(this),
       hostRoleService_(this),
       guestRoleService_(this),
       videoSenderPipeline_(this),
       videoRecevierPipline_(this),
       videoWidget_(nullptr),
-      //inputCapture_(this),
-      //inputSender_(this),
-      //inputReceiver_(this),
       inputService_(this),
       rateController_(this),
       receiverMonitor_(this) {
@@ -81,6 +79,7 @@ bool ClientApp::startAsHost(const QString& clientId, const AppConfig& config) {
     role_ = Role::Host;
     hostRoleService_.setClientId(clientId);
     mediaService_.setRole(Role::Host);
+    controlService_.setRole(Role::Host);
 
     p2pSession_.applyConfig(config);
     p2pSession_.setServerUdpEndpoint(
@@ -113,7 +112,7 @@ bool ClientApp::startAsGuest(const QString& clientId,
     videoWidget_.show();
     guestRoleService_.setClientInfo(roomId, clientId);
     mediaService_.setRole(Role::Guest);
-
+    controlService_.setRole(Role::Guest);
     p2pSession_.applyConfig(config);
     p2pSession_.setServerUdpEndpoint(
             config.server.udpAddress,
@@ -143,87 +142,138 @@ bool ClientApp::startAsGuest(const QString& clientId,
 }
 
 void ClientApp::connectCommonSignals() {
-    connect(&signalingClient_, &SignalingClient::messageReceived,
-            &dispatcher_, &ClientDispatcher::onMessageReceived);
+    connect(&signalingClient_,
+            &SignalingClient::messageReceived,
+            &dispatcher_,
+            &ClientDispatcher::onMessageReceived);
 
-    connect(&dispatcher_, &ClientDispatcher::probePermitted,
-            &p2pSession_, &P2pSession::onProbePermitted);
+    connect(&dispatcher_,
+            &ClientDispatcher::probePermitted,
+            &p2pSession_,
+            &P2pSession::onProbePermitted);
 
-    connect(&dispatcher_, &ClientDispatcher::peerEndpoint,
-            &p2pSession_, &P2pSession::onPeerEndpoint);
+    connect(&dispatcher_,
+            &ClientDispatcher::peerEndpoint,
+            &p2pSession_,
+            &P2pSession::onPeerEndpoint);
 
-    connect(&dispatcher_, &ClientDispatcher::errorReceived,
-            this, [this](const SignalingMessage& message) {
-        emit errorOccurred(message.reason);
-    });
+    connect(&dispatcher_,
+            &ClientDispatcher::errorReceived,
+            this,
+            [this](const SignalingMessage& message) {
+                emit errorOccurred(message.reason);
+            });
 
-    connect(&dispatcher_, &ClientDispatcher::unknownMessage,
-            this, [this](const SignalingMessage& message) {
-        emit errorOccurred(QString("unknown signaling message: %1")
-                                   .arg(static_cast<quint16>(message.type)));
-    });
+    connect(&dispatcher_,
+            &ClientDispatcher::unknownMessage,
+            this,
+            [this](const SignalingMessage& message) {
+                emit errorOccurred(
+                    QString("unknown signaling message: %1")
+                            .arg(static_cast<quint16>(
+                                         message.type)));
+            });
 
-//////////////////////////////////////////////////////////////////////////////////
-
-    // 多媒体业务向p2pSession请求发送媒体帧
+    // MediaServiceWorker -> P2pSessionWorker
     connect(mediaService_.worker(),
             &MediaServiceWorker::udpMediaFrameToSend,
             p2pSession_.worker(),
             &P2pSessionWorker::sendMediaFrame);
 
-    connect(mediaService_.worker(),
-            &MediaServiceWorker::udpControlFrameToSend,
-            p2pSession_.worker(),
-            &P2pSessionWorker::sendControlFrame);
-
-    connect(&p2pSession_, &P2pSession::p2pReady,
-            mediaService_.worker(),
-            &MediaServiceWorker::onP2pReady);
-    connect(&p2pSession_, &P2pSession::mediaFrameReceived,
+    // P2pSessionWorker -> MediaServiceWorker
+    connect(p2pSession_.worker(),
+            &P2pSessionWorker::mediaFrameReceived,
             mediaService_.worker(),
             &MediaServiceWorker::onUdpMediaFrameReceived);
 
-    connect(&mediaService_, &MediaService::logReceived,
-            this, &ClientApp::logReceived);
-    connect(&mediaService_, &MediaService::errorOccurred,
-            this, &ClientApp::errorOccurred);
+    // ControlServiceWorker -> P2pSessionWorker
+    connect(controlService_.worker(),
+            &ControlServiceWorker::controlFrameToSend,
+            p2pSession_.worker(),
+            &P2pSessionWorker::sendControlFrame);
 
+    // P2pSessionWorker -> ControlServiceWorker
+    connect(p2pSession_.worker(),
+            &P2pSessionWorker::controlFrameReceived,
+            controlService_.worker(),
+            &ControlServiceWorker::onControlFrameReceived);
 
+    // P2P建立完成后启动媒体和控制服务
+    connect(p2pSession_.worker(),
+            &P2pSessionWorker::p2pReady,
+            mediaService_.worker(),
+            &MediaServiceWorker::onP2pReady);
 
-    connect(&signalingClient_, &SignalingClient::errorOccurred,
-            this, &ClientApp::errorOccurred);
+    connect(p2pSession_.worker(),
+            &P2pSessionWorker::p2pReady,
+            controlService_.worker(),
+            &ControlServiceWorker::onP2pReady);
 
-    connect(&p2pSession_, &P2pSession::errorOccurred,
-            this, &ClientApp::errorOccurred);
+    // 服务日志和错误
+    connect(&mediaService_,
+            &MediaService::logReceived,
+            this,
+            &ClientApp::logReceived);
 
-    connect(&p2pSession_, &P2pSession::logReceived,
-            this, &ClientApp::logReceived);
+    connect(&mediaService_,
+            &MediaService::errorOccurred,
+            this,
+            &ClientApp::errorOccurred);
 
-    // 通知输入服务开始启动
-    connect(&p2pSession_, &P2pSession::p2pReady,
-            &inputService_, &InputService::start);
+    connect(&controlService_,
+            &ControlService::logReceived,
+            this,
+            &ClientApp::logReceived);
 
-    connect(&videoWidget_, &VideoWidget::inputControlActiveChanged,
-            &inputService_, &InputService::setControlActive);
+    connect(&controlService_,
+            &ControlService::errorOccurred,
+            this,
+            &ClientApp::errorOccurred);
 
-    // 输入服务向多媒体服务请求发送InputSampleBytes
+    connect(&signalingClient_,
+            &SignalingClient::errorOccurred,
+            this,
+            &ClientApp::errorOccurred);
+
+    connect(&p2pSession_,
+            &P2pSession::errorOccurred,
+            this,
+            &ClientApp::errorOccurred);
+
+    connect(&p2pSession_,
+            &P2pSession::logReceived,
+            this,
+            &ClientApp::logReceived);
+
+    // P2P完成后启动输入服务
+    connect(p2pSession_.worker(),
+            &P2pSessionWorker::p2pReady,
+            inputService_.worker(),
+            &InputServiceWorker::start);
+
+    connect(&videoWidget_,
+            &VideoWidget::inputControlActiveChanged,
+            &inputService_,
+            &InputService::setControlActive);
+
+    // InputServiceWorker -> ControlServiceWorker
     connect(inputService_.worker(),
             &InputServiceWorker::inputSampleBytesReady,
-            mediaService_.worker(),
-            &MediaServiceWorker::sendInputSampleBytes);
+            controlService_.worker(),
+            &ControlServiceWorker::sendInputEvent);
 
-    // 处理host发回的Ack
-    connect(mediaService_.worker(),
-            &MediaServiceWorker::inputSampleBytesReceived,
+    // ControlServiceWorker -> InputServiceWorker
+    connect(controlService_.worker(),
+            &ControlServiceWorker::inputEventReceived,
             inputService_.worker(),
-            &InputServiceWorker::onInputSampleBytesReceived
-            );
+            &InputServiceWorker::onInputSampleBytesReceived);
 
-    // 接收方回复Ack
+    // InputServiceWorker -> ControlServiceWorker
+    // Host发送Ack，Guest发送输入事件
     connect(inputService_.worker(),
             &InputServiceWorker::inputAckSampleBytesReady,
-            mediaService_.worker(),
-            &MediaServiceWorker::sendInputSampleBytes);
+            controlService_.worker(),
+            &ControlServiceWorker::sendInputEvent);
 }
 
 void ClientApp::connectRoleSignals() {
@@ -258,21 +308,17 @@ void ClientApp::connectRoleSignals() {
         roleConnections_.append(connect(&p2pSession_, &P2pSession::p2pReady,
                 &videoSenderPipeline_, &VideoSenderPipeline::start));
 
-        //roleConnections_.append(connect(&videoSenderPipeline_, &VideoSenderPipeline::videoSampleBytesReady,
-                //&mediaService_, &MediaService::sendVideoSampleBytes));
-        roleConnections_.append(connect(videoSenderPipeline_.screenVideoSource(),
+        roleConnections_.append(
+                connect(videoSenderPipeline_.screenVideoSource(),
                 &ScreenVideoSource::videoImageReady,
                 videoSenderPipeline_.encoderWorker(),
                 &VideoEncoderWorker::onVideoImageReady));
-        roleConnections_.append(connect(videoSenderPipeline_.encoderWorker(),
+
+        roleConnections_.append(
+                connect(videoSenderPipeline_.encoderWorker(),
                 &VideoEncoderWorker::videoSampleBytesReady,
                 mediaService_.worker(),
                 &MediaServiceWorker::sendVideoSampleBytes));
-        roleConnections_.append(connect(mediaService_.worker(),
-                &MediaServiceWorker::keyFrameRequestReceived,
-                videoSenderPipeline_.encoderWorker(),
-                &VideoEncoderWorker::requestKeyFrame));
-
 
         //---------------------自适应系统----------------------------
         // 通知控制器带宽受限
@@ -299,18 +345,16 @@ void ClientApp::connectRoleSignals() {
                 );
 
         roleConnections_.append(connect(
-                p2pSession_.worker(),
-                &P2pSessionWorker::keyFrameRequestReceived,
+                controlService_.worker(),
+                &ControlServiceWorker::keyFrameRequestReceived,
                 videoSenderPipeline_.encoderWorker(),
-                &VideoEncoderWorker::requestKeyFrame
-                ));
+                &VideoEncoderWorker::requestKeyFrame));
 
         roleConnections_.append(connect(
-                p2pSession_.worker(),
-                &P2pSessionWorker::receiverReportBytesReceived,
+                controlService_.worker(),
+                &ControlServiceWorker::receiverReportReceived,
                 &rateController_,
-                &RateController::onReceiverReportBytesReceived
-                ));
+                &RateController::onReceiverReportBytesReceived));
         return;
     }
 
@@ -337,33 +381,17 @@ void ClientApp::connectRoleSignals() {
                 this, &ClientApp::errorOccurred));
 
 
-        // 测试
         roleConnections_.append(connect(
                 mediaService_.worker(),
                 &MediaServiceWorker::videoSampleBytesReceived,
                 videoRecevierPipline_.decoderWorker(),
                 &VideoDecoderWorker::onVideoSampleBytesReceived));
-        roleConnections_.append(connect(
-                videoRecevierPipline_.decoderWorker(),
-                &VideoDecoderWorker::videoImageReady,
-                &videoWidget_, &VideoWidget::onVideoImageReady));
 
         roleConnections_.append(connect(
                 videoRecevierPipline_.decoderWorker(),
-                &VideoDecoderWorker::keyFrameRequestNeeded,
-                mediaService_.worker(),
-                &MediaServiceWorker::sendKeyFrameRequest
-                ));
-/*
-        roleConnections_.append(connect(
-                videoRecevierPipline_.decoderWorker(),
-                &VideoDecoderWorker::keyFrameRequestNeeded,
-                mediaService_.worker(),
-                [worker = mediaService_.worker()] {
-                    qDebug() << "[关键帧请求] 调用 sendKeyFrameRequest";
-                    worker->sendKeyFrameRequest(QByteArray());
-                },
-                Qt::QueuedConnection));*/
+                &VideoDecoderWorker::videoImageReady,
+                &videoWidget_,
+                &VideoWidget::onVideoImageReady));
 
         //------------------自适应系统------------------
         roleConnections_.append(connect(
@@ -376,11 +404,14 @@ void ClientApp::connectRoleSignals() {
         roleConnections_.append(connect(
                 receiverMonitor_.worker(),
                 &ReceiverMonitorWorker::reportFrameBytesReady,
-                p2pSession_.worker(),
-                [worker = p2pSession_.worker()] (const QByteArray& bytes) {
-                    worker->sendControlFrame(UdpFrameType::ReceiverReport, bytes);
-                },
-                Qt::QueuedConnection));
+                controlService_.worker(),
+                &ControlServiceWorker::sendReceiverReport));
+
+        roleConnections_.append(connect(
+                videoRecevierPipline_.decoderWorker(),
+                &VideoDecoderWorker::keyFrameRequestNeeded,
+                controlService_.worker(),
+                &ControlServiceWorker::sendKeyFrameRequest));
     }
 }
 
@@ -388,7 +419,5 @@ void ClientApp::clearRoleConnections() {
     for (const QMetaObject::Connection& connection : roleConnections_) {
         disconnect(connection);
     }
-
     roleConnections_.clear();
-
 }

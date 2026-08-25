@@ -206,6 +206,7 @@ void P2pSessionWorker::onFrameReady(const UdpFrame &frame) {
     }
 
     switch (frame.frameType) {
+        // ---------------------P2p会话控制帧--------------------
         case UdpFrameType::ProbeAck :
             emit logReceived("udp probe ack received");
             break;
@@ -215,13 +216,15 @@ void P2pSessionWorker::onFrameReady(const UdpFrame &frame) {
         case UdpFrameType::PunchAck :
             handlePunchAck(frame);
             break;
-        case UdpFrameType::KeyFrameRequest :
-            emit keyFrameRequestReceived(frame.payload);
-            break;
-        case UdpFrameType::ReceiverReport :
-            emit receiverReportBytesReceived(frame.payload);
+
+            // 业务控制帧交给ControlServiceWorker
+        case UdpFrameType::InputEvent:
+        case UdpFrameType::KeyFrameRequest:
+        case UdpFrameType::ReceiverReport:
+            emit controlFrameReceived(frame);
             break;
         default:
+            emit logReceived("unknown control frame received");
             break;
     }
 }

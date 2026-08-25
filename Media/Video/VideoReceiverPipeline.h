@@ -10,16 +10,12 @@
 #include "VideoDecoder.h"
 #include "VideoDecoderWorker.h"
 
-class VideoRecevierPipline : public QObject {
+class VideoReceiverPipeline : public QObject {
     Q_OBJECT
 public:
-    explicit VideoRecevierPipline(QObject* parent);
+    explicit VideoReceiverPipeline(QObject* parent);
     void applyConfig(const AppConfig& config);
     VideoDecoderWorker* decoderWorker() const;
-
-signals:
-    //void videoSampleBytesReady(const QByteArray& sampleBytes);
-    void keyFrameRequestNeeded();
 
 private:
     VideoDecoder decoder_;

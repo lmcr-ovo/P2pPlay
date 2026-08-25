@@ -21,8 +21,6 @@ P2pSession::P2pSession(QObject* parent)
             worker_, &QObject::deleteLater);
     connect(worker_, &P2pSessionWorker::p2pReady,
             this, &P2pSession::p2pReady);
-    connect(worker_, &P2pSessionWorker::mediaFrameReceived,
-            this, &P2pSession::mediaFrameReceived);
     connect(worker_, &P2pSessionWorker::errorOccurred,
             this, &P2pSession::errorOccurred);
     connect(worker_, &P2pSessionWorker::logReceived,
@@ -124,16 +122,4 @@ void P2pSession::onPeerEndpoint(const SignalingMessage &message) {
             },
             Qt::QueuedConnection
             );
-}
-
-void P2pSession::sendMediaFrame(UdpFrameType type, const QByteArray &payload) {
-    P2pSessionWorker* worker = worker_;
-
-    QMetaObject::invokeMethod(
-            worker,
-            [worker, type, payload] {
-                worker->sendMediaFrame(type, payload);
-            },
-            Qt::QueuedConnection
-    );
 }

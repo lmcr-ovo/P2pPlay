@@ -279,7 +279,7 @@ void VideoDecoderWorker::requestKeyFrameIfNeeded() {
 
     lastKeyFrameRequestMs_ = nowMs;
 
-    qDebug() << "[关键帧][guest] 请求关键帧" << keyFrameRequestIntervalMs_;
+    qDebug() << "[关键帧][guest] 请求关键帧";
 
     emit keyFrameRequestNeeded();
 }

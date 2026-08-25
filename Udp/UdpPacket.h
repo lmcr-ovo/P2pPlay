@@ -12,18 +12,20 @@ enum class UdpChannelType : quint16 {
 
 enum class UdpFrameType : quint16 {
     Unknown = 0,
-    // Control
+    // P2p Session Control
     Probe = 1,
     ProbeAck = 2,
     Punch = 3,
     PunchAck = 4,
-    ReceiverReport = 9,
+
+    // App Control
+    ReceiverReport = 5,
+    InputEvent = 6,
+    KeyFrameRequest = 7,
 
     // Media
-    VideoFrame = 5,
-    AudioFrame = 6,
-    InputEvent = 7,
-    KeyFrameRequest = 8
+    VideoFrame = 8,
+    AudioFrame = 9
 };
 
 struct UdpPacket {

@@ -31,10 +31,10 @@ public:
 signals:
     void p2pReady(const QHostAddress& address, quint16 port);
     void mediaFrameReceived(const UdpFrame& frame);
+    void controlFrameReceived(const UdpFrame& frame);
+
     void errorOccurred(const QString& reason);
     void logReceived(const QString& message);
-    void keyFrameRequestReceived(const QByteArray& bytes);
-    void receiverReportBytesReceived(const QByteArray& sampleBytes);
     void sendBlock();
 
 public slots:

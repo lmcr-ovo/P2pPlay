@@ -16,8 +16,9 @@
 #include "HostRoleService.h"
 #include "GuestRoleService.h"
 #include "MediaService.h"
+#include "ControlService.h"
 #include "Video/VideoSenderPipeline.h"
-#include "Video/VideoReceiverPipline.h"
+#include "Video/VideoReceiverPipeline.h"
 #include "VideoWidget.h"
 #include "Input/InputCapture.h"
 #include "Input/InputSender.h"
@@ -74,13 +75,12 @@ private:
     GuestRoleService guestRoleService_;
 
     MediaService mediaService_;
+    ControlService controlService_;
+
     VideoSenderPipeline videoSenderPipeline_;
-    VideoRecevierPipline videoRecevierPipline_;
+    VideoReceiverPipeline videoRecevierPipline_;
     VideoWidget videoWidget_;
 
-    //InputCapture inputCapture_;
-    InputSender inputSender_;
-    InputReceiver inputReceiver_;
     InputService inputService_;
 
     RateController rateController_;

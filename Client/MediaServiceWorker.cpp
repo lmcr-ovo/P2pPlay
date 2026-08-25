@@ -69,19 +69,11 @@ void MediaServiceWorker::onUdpMediaFrameReceived(const UdpFrame& frame) {
         case UdpFrameType::AudioFrame:
             emit audioSampleBytesReceived(frame.payload);
             break;
-
-        case UdpFrameType::InputEvent:
-            emit inputSampleBytesReceived(frame.payload);
-            break;
-
-        case UdpFrameType::KeyFrameRequest:
-            qDebug() << "[关键帧][host] 收到关键帧请求";
-            emit keyFrameRequestReceived(frame.payload);
-            break;
         default:
             break;
     }
 }
+
 
 bool MediaServiceWorker::sendVideoSampleBytes(const QByteArray& payload) {
     if (!running_) {
@@ -120,48 +112,17 @@ bool MediaServiceWorker::sendAudioSampleBytes(const QByteArray& sampleBytes) {
     return true;
 }
 
-bool MediaServiceWorker::sendInputSampleBytes(const QByteArray& commandBytes) {
-    if (!running_) {
-        emit errorOccurred("media service is not running");
-        return false;
-    }
 
-    if (!canSend(UdpFrameType::InputEvent)) {
-        emit errorOccurred("current role cannot send input event");
-        return false;
-    }
-
-    emit udpMediaFrameToSend(UdpFrameType::InputEvent, commandBytes);
-    return true;
-}
-
-bool MediaServiceWorker::sendKeyFrameRequest() {
-    if (!running_) {
-        emit errorOccurred("media service is not running");
-        return false;
-    }
-
-    if (!canSend(UdpFrameType::KeyFrameRequest)) {
-        emit errorOccurred("current role cannot send key frame request");
-        return false;
-    }
-
-    // payload不能为空
-    QByteArray dummyPayload = QByteArray(1, 0);
-    emit udpControlFrameToSend(UdpFrameType::KeyFrameRequest, dummyPayload);
-    return true;
-}
-
-bool MediaServiceWorker::canSend(UdpFrameType type) const {
+bool MediaServiceWorker::canSend(
+        UdpFrameType type) const {
     if (role_ == Role::Host) {
         return type == UdpFrameType::VideoFrame
-               || type == UdpFrameType::AudioFrame
-               || type == UdpFrameType::InputEvent;
+               || type == UdpFrameType::AudioFrame;
     }
 
     if (role_ == Role::Guest) {
-        return type == UdpFrameType::InputEvent
-               || type == UdpFrameType::KeyFrameRequest;
+        return type == UdpFrameType::VideoFrame
+               || type == UdpFrameType::AudioFrame;
     }
 
     return false;
