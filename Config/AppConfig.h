@@ -49,7 +49,7 @@ struct VideoConfig {
     QString h264Profile = "baseline";
     bool h264RepeatHeaders = true;
     bool h264ForceIdr = true;
-    int h264KeyFrameRequestIntervalMs = 200;
+    int h264KeyFrameRequestIntervalMs = 50;
 
     double bppMin = 0.06;
     double bppMax = 0.2;

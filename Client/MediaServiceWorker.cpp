@@ -75,6 +75,7 @@ void MediaServiceWorker::onUdpMediaFrameReceived(const UdpFrame& frame) {
             break;
 
         case UdpFrameType::KeyFrameRequest:
+            qDebug() << "[关键帧请求] Host 收到请求";
             emit keyFrameRequestReceived(frame.payload);
             break;
 
@@ -146,7 +147,9 @@ bool MediaServiceWorker::sendKeyFrameRequest(const QByteArray& payload) {
         return false;
     }
 
-    emit udpMediaFrameToSend(UdpFrameType::KeyFrameRequest, payload);
+    //emit udpMediaFrameToSend(UdpFrameType::KeyFrameRequest, payload);
+    qDebug() << "发出控制关键帧请求";
+    emit udpControlFrameToSend(UdpFrameType::KeyFrameRequest, payload);
     return true;
 }
 

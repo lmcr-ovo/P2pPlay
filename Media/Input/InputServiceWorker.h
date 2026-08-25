@@ -16,6 +16,7 @@ class InputServiceWorker : public QObject {
     Q_OBJECT
 public:
     explicit InputServiceWorker(QObject* parent = nullptr);
+    ~InputServiceWorker() override;
     void setRole(const Role& role);
 
 signals:

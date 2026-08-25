@@ -33,6 +33,7 @@ signals:
     void mediaFrameReceived(const UdpFrame& frame);
     void errorOccurred(const QString& reason);
     void logReceived(const QString& message);
+    void keyFrameRequestReceived(const QByteArray& bytes);
     void receiverReportBytesReceived(const QByteArray& sampleBytes);
     void sendBlock();
 

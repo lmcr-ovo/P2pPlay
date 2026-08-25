@@ -68,8 +68,21 @@ void VideoDecoderWorker::handleH264(VideoSample& sample) {
     const bool isKeyFrame =
             (sample.flags & VideoSampleFlag_KeyFrame) != 0;
 
+    // ── 日志 1：每帧进入时的状态 ──
+    /*qDebug() << QString("[H264进入] seq=%1 key=%2 wait=%3 last=%4")
+            .arg(sample.videoSeq)
+            .arg(isKeyFrame)
+            .arg(waitingForKeyFrame_)
+            .arg(lastH264Seq_);
+            */
+
+
     // 断号检测
     if (hasLastH264Seq_ && sample.videoSeq != lastH264Seq_ + 1) {
+
+        qDebug() << QString("[H264断号] seq=%1 last=%2")
+                .arg(sample.videoSeq).arg(lastH264Seq_);
+
         waitingForKeyFrame_ = true;
         stopH264Decoder();
         requestKeyFrameIfNeeded();
@@ -79,18 +92,26 @@ void VideoDecoderWorker::handleH264(VideoSample& sample) {
     lastH264Seq_ = sample.videoSeq;
 
     if (waitingForKeyFrame_ && !isKeyFrame) {
-        qDebug() << QString("lastH264Seq_ = %1, 正在等关键帧 %2 不是关键帧 被跳过")
-            .arg(lastH264Seq_).arg(sample.videoSeq);
+
+        qDebug() << QString("[H264跳过] seq=%1 等关键帧")
+                .arg(sample.videoSeq);
+
         requestKeyFrameIfNeeded();
         return;
     }
 
     if (isKeyFrame) {
+        qDebug() << QString("[H264恢复] seq=%1 收到关键帧")
+                .arg(sample.videoSeq);
+
         waitingForKeyFrame_ = false;
         lastKeyFrameRequestMs_ = 0;
     }
 
     if (!ensureH264Decoder()) {
+        qDebug() << QString("[H264恢复] seq=%1 收到关键帧")
+                .arg(sample.videoSeq);
+
         waitingForKeyFrame_ = true;
         requestKeyFrameIfNeeded();
         return;
@@ -114,6 +135,9 @@ void VideoDecoderWorker::handleH264(VideoSample& sample) {
                                               AV_NOPTS_VALUE,
                                               0);
         if (consumed < 0) {
+            qDebug() << QString("[H264失败] seq=%1 av_parser_parse2失败")
+                    .arg(sample.videoSeq);
+
             waitingForKeyFrame_ = true;
             stopH264Decoder();
             requestKeyFrameIfNeeded();
@@ -134,6 +158,9 @@ void VideoDecoderWorker::handleH264(VideoSample& sample) {
         if (avcodec_send_packet(h264CodecContext_, h264Packet_) == 0) {
             drainH264Frames(sample.videoSeq);
         } else {
+            qDebug() << QString("[H264失败] seq=%1 avcodec_send_packet失败")
+                    .arg(sample.videoSeq);
+
             waitingForKeyFrame_ = true;
             stopH264Decoder();
             requestKeyFrameIfNeeded();
@@ -260,5 +287,8 @@ void VideoDecoderWorker::requestKeyFrameIfNeeded() {
     }
 
     lastKeyFrameRequestMs_ = nowMs;
+
+    qDebug() << "[关键帧请求] 发射信号 interval=" << keyFrameRequestIntervalMs_;
+
     emit keyFrameRequestNeeded();
 }

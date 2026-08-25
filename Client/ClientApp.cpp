@@ -169,8 +169,12 @@ void ClientApp::connectCommonSignals() {
     connect(mediaService_.worker(),
             &MediaServiceWorker::udpMediaFrameToSend,
             p2pSession_.worker(),
-            &P2pSessionWorker::sendMediaFrame,
-            Qt::QueuedConnection);
+            &P2pSessionWorker::sendMediaFrame);
+
+    connect(mediaService_.worker(),
+            &MediaServiceWorker::udpControlFrameToSend,
+            p2pSession_.worker(),
+            &P2pSessionWorker::sendControlFrame);
 
     connect(&p2pSession_, &P2pSession::p2pReady,
             mediaService_.worker(),
@@ -296,6 +300,13 @@ void ClientApp::connectRoleSignals() {
 
         roleConnections_.append(connect(
                 p2pSession_.worker(),
+                &P2pSessionWorker::keyFrameRequestReceived,
+                videoSenderPipeline_.encoderWorker(),
+                &VideoEncoderWorker::requestKeyFrame
+                ));
+
+        roleConnections_.append(connect(
+                p2pSession_.worker(),
                 &P2pSessionWorker::receiverReportBytesReceived,
                 &rateController_,
                 &RateController::onReceiverReportBytesReceived
@@ -342,6 +353,7 @@ void ClientApp::connectRoleSignals() {
                 &VideoDecoderWorker::keyFrameRequestNeeded,
                 mediaService_.worker(),
                 [worker = mediaService_.worker()] {
+                    qDebug() << "[关键帧请求] 调用 sendKeyFrameRequest";
                     worker->sendKeyFrameRequest(QByteArray());
                 },
                 Qt::QueuedConnection));

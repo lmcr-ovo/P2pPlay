@@ -8,7 +8,10 @@ InputServiceWorker::InputServiceWorker(QObject* parent)
     : capture_(this),
     sender_(this),
     receiver_(this) {
+}
 
+InputServiceWorker::~InputServiceWorker() {
+    clearRoleConnections();
 }
 
 void InputServiceWorker::setRole(const Role& role) {
@@ -38,14 +41,16 @@ void InputServiceWorker::connectRoleSignals() {
 }
 
 void InputServiceWorker::clearRoleConnections() {
-    for (const auto conn : roleConnections_) {
+    for (const auto& conn : roleConnections_) {
         disconnect(conn);
     }
     roleConnections_.clear();
 }
 
 void InputServiceWorker::start() {
-    capture_.start();
+    if (role_ == Role::Guest) {
+        capture_.start();
+    }
 }
 
 void InputServiceWorker::setControlActive(bool active) {

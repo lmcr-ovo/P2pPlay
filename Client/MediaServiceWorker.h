@@ -39,6 +39,7 @@ signals:
     void keyFrameRequestReceived(const QByteArray& payload);
 
     void udpMediaFrameToSend(UdpFrameType type, const QByteArray& payload);
+    void udpControlFrameToSend(UdpFrameType type, const QByteArray& payload);
 
     void logReceived(const QString& message);
     void errorOccurred(const QString& reason);

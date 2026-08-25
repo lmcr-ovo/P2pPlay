@@ -216,6 +216,10 @@ void P2pSessionWorker::onFrameReady(const UdpFrame &frame) {
         case UdpFrameType::PunchAck :
             handlePunchAck(frame);
             break;
+        case UdpFrameType::KeyFrameRequest :
+            qDebug() << "--------------收到关键帧请求------------";
+            emit keyFrameRequestReceived(frame.payload);
+            break;
         case UdpFrameType::ReceiverReport :
             emit receiverReportBytesReceived(frame.payload);
             break;
@@ -306,6 +310,10 @@ void P2pSessionWorker::sendMediaFrame(UdpFrameType type, const QByteArray& paylo
 }
 
 void P2pSessionWorker::sendControlFrame(UdpFrameType type, const QByteArray& payload) {
+    if (type == UdpFrameType::KeyFrameRequest){
+        qDebug() << "--------------------------传输层发送关键帧请求-----------";
+    }
+
     transport_.sendFrame(UdpChannelType::Control, type, payload);
 }
 

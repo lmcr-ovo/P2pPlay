@@ -15,7 +15,6 @@ class InputService : public QObject {
 public:
     explicit InputService(QObject* parent);
     ~InputService() override;
-    void applyConfig(const AppConfig& config);
     void setRole(const Role& role);
     InputServiceWorker* worker() const;
 
