@@ -352,11 +352,18 @@ void ClientApp::connectRoleSignals() {
                 videoRecevierPipline_.decoderWorker(),
                 &VideoDecoderWorker::keyFrameRequestNeeded,
                 mediaService_.worker(),
+                &MediaServiceWorker::sendKeyFrameRequest
+                ));
+/*
+        roleConnections_.append(connect(
+                videoRecevierPipline_.decoderWorker(),
+                &VideoDecoderWorker::keyFrameRequestNeeded,
+                mediaService_.worker(),
                 [worker = mediaService_.worker()] {
                     qDebug() << "[关键帧请求] 调用 sendKeyFrameRequest";
                     worker->sendKeyFrameRequest(QByteArray());
                 },
-                Qt::QueuedConnection));
+                Qt::QueuedConnection));*/
 
         //------------------自适应系统------------------
         roleConnections_.append(connect(

@@ -163,7 +163,6 @@ void P2pSessionWorker::sendPunch() {
     const QList<quint16> ports = punchCandidatePorts();
 
     for (quint16 port : ports) {
-        //qDebug() << "向" << peerAddress_.toString() << ":" << port <<"打洞";
         transport_.sendFrameTo(
                 peerAddress_,
                 port,
@@ -217,7 +216,6 @@ void P2pSessionWorker::onFrameReady(const UdpFrame &frame) {
             handlePunchAck(frame);
             break;
         case UdpFrameType::KeyFrameRequest :
-            qDebug() << "--------------收到关键帧请求------------";
             emit keyFrameRequestReceived(frame.payload);
             break;
         case UdpFrameType::ReceiverReport :
@@ -310,10 +308,6 @@ void P2pSessionWorker::sendMediaFrame(UdpFrameType type, const QByteArray& paylo
 }
 
 void P2pSessionWorker::sendControlFrame(UdpFrameType type, const QByteArray& payload) {
-    if (type == UdpFrameType::KeyFrameRequest){
-        qDebug() << "--------------------------传输层发送关键帧请求-----------";
-    }
-
     transport_.sendFrame(UdpChannelType::Control, type, payload);
 }
 

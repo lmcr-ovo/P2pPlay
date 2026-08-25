@@ -41,7 +41,6 @@ void ReceiverMonitorWorker::onVideoSampleBytes(const QByteArray& bytes) {
 }
 
 void ReceiverMonitorWorker::onSettleTick() {   // QTimer::timeout，间隔 τ
-    qDebug() << "onSettleTick";
     if (!hasFirstSeq_) {
         return;   // 本周期没收到帧，不发报告
     }

@@ -75,10 +75,9 @@ void MediaServiceWorker::onUdpMediaFrameReceived(const UdpFrame& frame) {
             break;
 
         case UdpFrameType::KeyFrameRequest:
-            qDebug() << "[关键帧请求] Host 收到请求";
+            qDebug() << "[关键帧][host] 收到关键帧请求";
             emit keyFrameRequestReceived(frame.payload);
             break;
-
         default:
             break;
     }
@@ -136,7 +135,7 @@ bool MediaServiceWorker::sendInputSampleBytes(const QByteArray& commandBytes) {
     return true;
 }
 
-bool MediaServiceWorker::sendKeyFrameRequest(const QByteArray& payload) {
+bool MediaServiceWorker::sendKeyFrameRequest() {
     if (!running_) {
         emit errorOccurred("media service is not running");
         return false;
@@ -147,9 +146,9 @@ bool MediaServiceWorker::sendKeyFrameRequest(const QByteArray& payload) {
         return false;
     }
 
-    //emit udpMediaFrameToSend(UdpFrameType::KeyFrameRequest, payload);
-    qDebug() << "发出控制关键帧请求";
-    emit udpControlFrameToSend(UdpFrameType::KeyFrameRequest, payload);
+    // payload不能为空
+    QByteArray dummyPayload = QByteArray(1, 0);
+    emit udpControlFrameToSend(UdpFrameType::KeyFrameRequest, dummyPayload);
     return true;
 }
 

@@ -30,7 +30,7 @@ public slots:
     bool sendVideoSampleBytes(const QByteArray& payload);
     bool sendAudioSampleBytes(const QByteArray& sampleBytes);
     bool sendInputSampleBytes(const QByteArray& sampleBytes);
-    bool sendKeyFrameRequest(const QByteArray& payload);
+    bool sendKeyFrameRequest();
 
 signals:
     void videoSampleBytesReceived(const QByteArray& sampleBytes);
