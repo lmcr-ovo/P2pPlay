@@ -21,10 +21,14 @@ public slots:
 
 private:
     static void handleKeyBoard(const InputSample& sample);
+    static void handleMouse(const InputSample& sample);
+    static void handleSample(const InputSample& sample);
     void sendAck(const quint32 ackSeq);
+    void tryExecutePending();
 
 private:
-    quint32 expectedSeq = 0;
+    quint32 expectedSeq_ = 0;
+    QMap<quint32, InputSample> pendingSamples_;
 };
 
 

@@ -15,7 +15,6 @@ InputReceiver::InputReceiver(QObject* parent)
 
 
 void InputReceiver::onInputSampleBytesReady(const QByteArray &bytes) {
-    qDebug() << "recved input sample";
     InputSample sample;
     if (!InputSampleCodec::decode(bytes, sample)) {
         return;
@@ -25,33 +24,35 @@ void InputReceiver::onInputSampleBytesReady(const QByteArray &bytes) {
         return;
     }
 
-    if (sample.seq < expectedSeq) {
-        // 重复包，不执行，但最好回 ACK
-        sendAck(expectedSeq - 1);
+    // MouseMove 为高频不可靠事件，直接执行
+    if (!isReliableInputAction(sample.action)) {
+        handleSample(sample);
         return;
     }
 
-    if (sample.seq > expectedSeq) {
+    if (sample.seq < expectedSeq_) {
+        // 重复包，回复最近一次已执行序号
+        sendAck(expectedSeq_ - 1);
+        return;
+    }
+
+    if (sample.seq == expectedSeq_) {
+        handleSample(sample);
+        ++expectedSeq_;
+        sendAck(expectedSeq_ - 1);
+        tryExecutePending();
+        return;
+    }
+
+    if (sample.seq > expectedSeq_) {
         // 中间缺包，不能执行当前包
-        sendAck(expectedSeq == 0 ? 0 : expectedSeq - 1);
+        pendingSamples_.insert(sample.seq, sample);
+        sendAck(expectedSeq_ == 0 ? 0 : expectedSeq_ - 1);
         return;
-    }
-
-    switch (sample.device) {
-        case InputDevice::Keyboard : {
-            handleKeyBoard(sample);
-            expectedSeq += 1;
-            sendAck(expectedSeq - 1);
-            break;
-        }
-        default:
-            break;
     }
 }
 
 void InputReceiver::handleKeyBoard(const InputSample &sample) {
-    qDebug() << "recv " << sample.vk;
-    qDebug() << sample.seq;
     if (sample.action == InputAction::KeyDown) {
         InputInjector::sendKeyDown(sample.vk);
     }
@@ -60,9 +61,72 @@ void InputReceiver::handleKeyBoard(const InputSample &sample) {
     }
 }
 
+void InputReceiver::handleMouse(const InputSample &sample) {
+    switch (sample.action) {
+        case InputAction::MouseMove:
+            InputInjector::sendMouseMove(
+                    sample.x,
+                    sample.y
+            );
+            break;
+
+        case InputAction::MouseDown:
+            InputInjector::sendMouseDown(
+                    sample.mouseButton
+            );
+            break;
+
+        case InputAction::MouseUp:
+            InputInjector::sendMouseUp(
+                    sample.mouseButton
+            );
+            break;
+
+        case InputAction::MouseWheel:
+            InputInjector::sendMouseWheel(
+                    sample.wheelDelta
+            );
+            break;
+
+        default:
+            break;
+    }
+}
+
+void InputReceiver::handleSample(const InputSample &sample) {
+    switch (sample.device) {
+        case InputDevice::Keyboard:
+            handleKeyBoard(sample);
+            break;
+
+        case InputDevice::Mouse:
+            handleMouse(sample);
+            break;
+
+        default:
+            break;
+    }
+}
+
 void InputReceiver::sendAck(const quint32 ackSeq) {
     InputSample ackSample;
     ackSample.kind = InputSampleKind::Ack;
     ackSample.ackSeq = ackSeq;
     emit inputAckSampleBytesReady(InputSampleCodec::encode(ackSample));
+}
+
+void InputReceiver::tryExecutePending() {
+    bool exist = false;
+    while (!pendingSamples_.isEmpty()
+        && pendingSamples_.firstKey() == expectedSeq_) {
+        exist = true;
+        qDebug() << QString("[输入][host] 清除input缓存 seq = %1")
+            .arg(expectedSeq_);
+        handleKeyBoard(pendingSamples_.first());
+        pendingSamples_.erase(pendingSamples_.begin());
+        expectedSeq_ += 1;
+    }
+    if (exist) {
+        sendAck(expectedSeq_ - 1);
+    }
 }

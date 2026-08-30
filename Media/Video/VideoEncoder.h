@@ -70,8 +70,8 @@ private:
     int h264Height_ = 0;
     qint64 nextPts_ = 0;
 
-    quint16 bitrateKbpsMax_ = 0;
-    quint16 bitrateKbpsMin_ = 0;
+    quint32 bitrateKbpsMax_ = 0;
+    quint32 bitrateKbpsMin_ = 0;
 };
 
 class VideoEncoder : public QObject {

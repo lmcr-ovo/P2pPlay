@@ -10,6 +10,8 @@ ClientApp::ClientApp()
       dispatcher_(this),
       p2pSession_(this),
       mediaService_(this),
+      audioService_(this),
+      avSyncService_(this),
       controlService_(this),
       hostRoleService_(this),
       guestRoleService_(this),
@@ -20,6 +22,8 @@ ClientApp::ClientApp()
       rateController_(this),
       receiverMonitor_(this) {
     qRegisterMetaType<InputSample>("InputSample");
+    qRegisterMetaType<DecodedAudioFrame>("DecodedAudioFrame");
+    qRegisterMetaType<DecodedVideoFrame>("DecodedVideoFrame");
     TraceManager::instance();
     connectCommonSignals();
 }
@@ -44,6 +48,9 @@ bool ClientApp::startAsHost(const QString& clientId,
     signalingClient_.connectToServer(serverTcpAddress, serverTcpPort);
 
     mediaService_.setRole(Role::Host);
+    audioService_.applyConfig(AppConfig::defaultHost());
+    audioService_.setRole(Role::Host);
+    avSyncService_.setRole(Role::Host);
     return true;
 }
 
@@ -68,6 +75,9 @@ bool ClientApp::startAsGuest(const QString& clientId,
     signalingClient_.connectToServer(serverTcpAddress, serverTcpPort);
 
     mediaService_.setRole(Role::Guest);
+    audioService_.applyConfig(AppConfig::defaultGuest());
+    audioService_.setRole(Role::Guest);
+    avSyncService_.setRole(Role::Guest);
 
     return true;
 }
@@ -79,6 +89,12 @@ bool ClientApp::startAsHost(const QString& clientId, const AppConfig& config) {
     role_ = Role::Host;
     hostRoleService_.setClientId(clientId);
     mediaService_.setRole(Role::Host);
+    audioService_.applyConfig(config);
+    audioService_.setRole(Role::Host);
+    avSyncService_.setRole(Role::Host);
+    avSyncService_.setAudioEnabled(config.audio.playbackEnabled);
+    avSyncService_.setVideoEnabled(true);
+    avSyncService_.setAvSyncEnabled(config.audio.avSyncEnabled);
     controlService_.setRole(Role::Host);
 
     p2pSession_.applyConfig(config);
@@ -112,6 +128,12 @@ bool ClientApp::startAsGuest(const QString& clientId,
     videoWidget_.show();
     guestRoleService_.setClientInfo(roomId, clientId);
     mediaService_.setRole(Role::Guest);
+    audioService_.applyConfig(config);
+    audioService_.setRole(Role::Guest);
+    avSyncService_.setRole(Role::Guest);
+    avSyncService_.setAudioEnabled(config.audio.playbackEnabled);
+    avSyncService_.setVideoEnabled(true);
+    avSyncService_.setAvSyncEnabled(config.audio.avSyncEnabled);
     controlService_.setRole(Role::Guest);
     p2pSession_.applyConfig(config);
     p2pSession_.setServerUdpEndpoint(
@@ -204,10 +226,36 @@ void ClientApp::connectCommonSignals() {
             mediaService_.worker(),
             &MediaServiceWorker::onP2pReady);
 
+    // 音频数据只在 worker 之间传递，不经过 ClientApp 主线程。
+    connect(audioService_.worker(),
+            &AudioServiceWorker::audioSampleBytesReady,
+            mediaService_.worker(),
+            &MediaServiceWorker::sendAudioSampleBytes);
+
+    connect(mediaService_.worker(),
+            &MediaServiceWorker::audioSampleBytesReceived,
+            audioService_.worker(),
+            &AudioServiceWorker::onAudioSampleBytesReceived);
+
+    connect(audioService_.worker(),
+            &AudioServiceWorker::decodedAudioFrameReady,
+            avSyncService_.worker(),
+            &AvSyncWorker::onAudioFrameReady);
+
+    connect(avSyncService_.worker(),
+            &AvSyncWorker::audioFrameToPlay,
+            audioService_.worker(),
+            &AudioServiceWorker::onAudioFrameToPlay);
+
     connect(p2pSession_.worker(),
             &P2pSessionWorker::p2pReady,
             controlService_.worker(),
             &ControlServiceWorker::onP2pReady);
+
+    connect(p2pSession_.worker(),
+            &P2pSessionWorker::p2pReady,
+            audioService_.worker(),
+            &AudioServiceWorker::start);
 
     // 服务日志和错误
     connect(&mediaService_,
@@ -220,13 +268,34 @@ void ClientApp::connectCommonSignals() {
             this,
             &ClientApp::errorOccurred);
 
+    // AudioService 只转发日志和错误；音频数据不经过此处。
+    connect(&audioService_,
+            &AudioService::logReceived,
+            this,
+            &ClientApp::logReceived);
+
+    connect(&audioService_,
+            &AudioService::errorOccurred,
+            this,
+            &ClientApp::errorOccurred);
+
+    connect(&avSyncService_,
+            &AvSyncService::logReceived,
+            this,
+            &ClientApp::logReceived);
+
+    connect(&avSyncService_,
+            &AvSyncService::errorOccurred,
+            this,
+            &ClientApp::errorOccurred);
+
     connect(&controlService_,
-            &ControlService::logReceived,
+            &ControlChannelService::logReceived,
             this,
             &ClientApp::logReceived);
 
     connect(&controlService_,
-            &ControlService::errorOccurred,
+            &ControlChannelService::errorOccurred,
             this,
             &ClientApp::errorOccurred);
 
@@ -274,6 +343,31 @@ void ClientApp::connectCommonSignals() {
             &InputServiceWorker::inputAckSampleBytesReady,
             controlService_.worker(),
             &ControlServiceWorker::sendInputEvent);
+
+
+    // Guest 视频窗口鼠标事件 → InputServiceWorker
+    connect(
+            &videoWidget_,
+            &VideoWidget::mouseInputSampleReady,
+            inputService_.worker(),
+            &InputServiceWorker::onMouseInputSampleReady
+    );
+
+    // Host 鼠标位置 → Guest 虚拟鼠标绘制
+    connect(
+            inputService_.worker(),
+            &InputServiceWorker::hostMousePositionReceived,
+            &videoWidget_,
+            &VideoWidget::onHostMousePositionReceived
+    );
+
+    // 视频窗口控制状态 → 输入服务
+    connect(
+            &videoWidget_,
+            &VideoWidget::inputControlActiveChanged,
+            inputService_.worker(),
+            &InputServiceWorker::setControlActive
+    );
 }
 
 void ClientApp::connectRoleSignals() {

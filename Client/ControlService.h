@@ -11,12 +11,12 @@
 #include "Role.h"
 #include "ControlServiceWorker.h"
 
-class ControlService : public QObject {
+class ControlChannelService : public QObject {
 Q_OBJECT
 
 public:
-    explicit ControlService(QObject* parent = nullptr);
-    ~ControlService() override;
+    explicit ControlChannelService(QObject* parent = nullptr);
+    ~ControlChannelService() override;
 
     ControlServiceWorker* worker() const;
 

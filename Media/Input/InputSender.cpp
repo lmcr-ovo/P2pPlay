@@ -31,8 +31,7 @@ void InputSender::onInputAckSampleBytesReady(const QByteArray& bytes) {
     if (!InputSampleCodec::decode(bytes, sample)) {
         return;
     }
-    if (!isReliableInputAction(sample.action)
-        || sample.kind != InputSampleKind::Ack) {
+    if (sample.kind != InputSampleKind::Ack) {
         return;
     }
 

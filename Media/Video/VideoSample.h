@@ -15,7 +15,7 @@ enum class VideoSampleCodecType : quint8 {
 
 enum VideoSampleFlags : quint32 {
     VideoSampleFlag_None = 0,
-    VideoSampleFlag_KeyFrame = 1u << 0
+    VideoSampleFlag_KeyFrame = 1
 };
 
 struct VideoSample {

@@ -2,6 +2,8 @@
 cmake-build-*/
 build/
 out/
+P2Pplay-debug/
+P2Pplay-release/
 
 # CMake generated files
 CMakeCache.txt

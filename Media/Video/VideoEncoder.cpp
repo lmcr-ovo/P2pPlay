@@ -113,15 +113,15 @@ void VideoEncoderWorker::onTargetBitrateChanged(double rate) {
     }
 
     // 新码率 = 当前码率 × 因子
-    quint16 newBitRate = 0;
+    quint32 newBitRate = 0;
     if (rate > 1.0) {
-        auto r1 = static_cast<quint16>(h264BitrateKbps_ * rate);
-        auto r2 = static_cast<quint16>((bitrateKbpsMax_ + h264BitrateKbps_) / 2);
+        auto r1 = static_cast<quint32>(h264BitrateKbps_ * rate);
+        auto r2 = static_cast<quint32>((bitrateKbpsMax_ + h264BitrateKbps_) / 2);
         newBitRate = qMin(r1, r2);
     } else {
         newBitRate = qMax(
-                static_cast<quint16>(h264BitrateKbps_ * rate),
-                static_cast<quint16>(bitrateKbpsMin_ / 2));
+                static_cast<quint32>(h264BitrateKbps_ * rate),
+                static_cast<quint32>(bitrateKbpsMin_ / 2));
         if (newBitRate < bitrateKbpsMin_) {
             emit warningBitRateTooLow(newBitRate);
         }

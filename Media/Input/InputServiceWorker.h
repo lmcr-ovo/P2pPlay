@@ -7,6 +7,7 @@
 
 #include <QObject>
 #include <QList>
+#include <QTimer>
 #include "Role.h"
 #include "InputCapture.h"
 #include "InputSender.h"
@@ -23,14 +24,22 @@ signals:
     void inputSampleBytesReady(const QByteArray& bytes);
     void inputAckSampleBytesReady(const QByteArray& bytes);
 
-private:
-    void connectRoleSignals();
-    void clearRoleConnections();
+    // Guest 收到 Host 鼠标位置
+    void hostMousePositionReceived(const InputSample& sample);
 
 public slots:
     void start();
     void setControlActive(bool active);
     void onInputSampleBytesReceived(const QByteArray& bytes);
+    // Guest 视频窗口产生的鼠标事件
+    void onMouseInputSampleReady(const InputSample& sample);
+
+private:
+    void connectRoleSignals();
+    void clearRoleConnections();
+
+    // Host 定时发送鼠标位置
+    void sendHostMousePosition();
 
 private:
     Role role_ = Role::Unknown;
@@ -39,6 +48,8 @@ private:
     InputCapture capture_;
     InputSender sender_;
     InputReceiver receiver_;
+
+    QTimer mouseSyncTimer_;
 };
 
 

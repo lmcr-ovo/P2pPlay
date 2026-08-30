@@ -16,6 +16,8 @@
 #include "HostRoleService.h"
 #include "GuestRoleService.h"
 #include "MediaService.h"
+#include "Audio/AudioService.h"
+#include "AvSync/AvSyncService.h"
 #include "ControlService.h"
 #include "Video/VideoSenderPipeline.h"
 #include "Video/VideoReceiverPipeline.h"
@@ -75,7 +77,9 @@ private:
     GuestRoleService guestRoleService_;
 
     MediaService mediaService_;
-    ControlService controlService_;
+    AudioService audioService_;
+    AvSyncService avSyncService_;
+    ControlChannelService controlService_;
 
     VideoSenderPipeline videoSenderPipeline_;
     VideoReceiverPipeline videoRecevierPipline_;

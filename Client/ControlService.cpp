@@ -4,7 +4,7 @@
 
 #include "ControlService.h"
 
-ControlService::ControlService(QObject* parent)
+ControlChannelService::ControlChannelService(QObject* parent)
         : QObject(parent) {
     thread_ = new QThread(this);
     worker_ = new ControlServiceWorker;
@@ -19,28 +19,28 @@ ControlService::ControlService(QObject* parent)
     connect(worker_,
             &ControlServiceWorker::logReceived,
             this,
-            &ControlService::logReceived);
+            &ControlChannelService::logReceived);
 
     connect(worker_,
             &ControlServiceWorker::errorOccurred,
             this,
-            &ControlService::errorOccurred);
+            &ControlChannelService::errorOccurred);
 
     thread_->start();
 }
 
-ControlService::~ControlService() {
+ControlChannelService::~ControlChannelService() {
     thread_->quit();
     thread_->wait();
 
     worker_ = nullptr;
 }
 
-ControlServiceWorker* ControlService::worker() const {
+ControlServiceWorker* ControlChannelService::worker() const {
     return worker_;
 }
 
-void ControlService::setRole(Role role) {
+void ControlChannelService::setRole(Role role) {
     QMetaObject::invokeMethod(
             worker_,
             [worker = worker_, role] {
@@ -49,7 +49,7 @@ void ControlService::setRole(Role role) {
             Qt::BlockingQueuedConnection);
 }
 
-Role ControlService::role() const {
+Role ControlChannelService::role() const {
     Role result = Role::Unknown;
 
     QMetaObject::invokeMethod(
@@ -62,7 +62,7 @@ Role ControlService::role() const {
     return result;
 }
 
-void ControlService::start() {
+void ControlChannelService::start() {
     QMetaObject::invokeMethod(
             worker_,
             [worker = worker_] {
@@ -71,7 +71,7 @@ void ControlService::start() {
             Qt::BlockingQueuedConnection);
 }
 
-void ControlService::stop() {
+void ControlChannelService::stop() {
     QMetaObject::invokeMethod(
             worker_,
             [worker = worker_] {
@@ -80,7 +80,7 @@ void ControlService::stop() {
             Qt::BlockingQueuedConnection);
 }
 
-bool ControlService::isRunning() const {
+bool ControlChannelService::isRunning() const {
     bool result = false;
 
     QMetaObject::invokeMethod(

@@ -68,6 +68,7 @@ add_library(Media
 
         #-----------------------------按键----------------------------------
         Input/InputSample.h
+        Input/InputCoordinate.h
         Input/InputSampleCodec.h Input/InputSampleCodec.cpp
         Input/InputCapture.h Input/InputCapture.cpp
         Input/InputSender.h Input/InputSender.cpp
@@ -75,6 +76,24 @@ add_library(Media
         Input/InputInjector.h Input/InputInjector.cpp
         Input/InputService.h Input/InputService.cpp
         Input/InputServiceWorker.h Input/InputServiceWorker.cpp
+
+
+        #-----------------------------音频-----------------------------------
+        Audio/AudioSample.h
+        Audio/AudioSampleCodec.h Audio/AudioSampleCodec.cpp
+        Audio/AudioOpusEncoder.h Audio/AudioOpusEncoder.cpp
+        Audio/AudioOpusDecoder.h Audio/AudioOpusDecoder.cpp
+        Audio/MicrophoneAudioSource.h Audio/MicrophoneAudioSource.cpp
+        Audio/DesktopAudioSource.h Audio/DesktopAudioSource.cpp
+        Audio/AudioPlayback.h Audio/AudioPlayback.cpp
+        Audio/AudioMixer.h Audio/AudioMixer.cpp
+        Audio/AudioService.h Audio/AudioService.cpp
+        Audio/AudioServiceWorker.h Audio/AudioServiceWorker.cpp
+
+        #---------------------------同步器-----------------------------------
+        AvSync/AvSyncFrame.h
+        AvSync/AvSyncWorker.h AvSync/AvSyncWorker.cpp
+        AvSync/AvSyncService.h AvSync/AvSyncService.cpp
         )
 
 
@@ -82,7 +101,16 @@ target_include_directories(Media PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}
         "${FFMPEG_INCLUDE_DIR}")
 
-find_package(Qt5 REQUIRED COMPONENTS Widgets Gui Core Network)
+find_package(Qt5 REQUIRED COMPONENTS
+        Widgets
+        Gui
+        Core
+        Network
+        Multimedia)
+
+find_package(Opus REQUIRED)
+
+
 target_link_libraries(Media PUBLIC
         Qt5::Core
         Qt5::Network
@@ -94,4 +122,9 @@ target_link_libraries(Media PUBLIC
         Logger
         "${FFMPEG_AVCODEC_LIBRARY}"
         "${FFMPEG_SWSCALE_LIBRARY}"
-        "${FFMPEG_AVUTIL_LIBRARY}")
+        "${FFMPEG_AVUTIL_LIBRARY}"
+        Opus::opus
+        Qt5::Multimedia
+        ole32)
+
+add_subdirectory(Audio/test)

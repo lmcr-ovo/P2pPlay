@@ -75,6 +75,7 @@ struct InputSample {
 
     quint32 vk = 0;
 
+    // 鼠标坐标：归一化值，范围 0~65535
     qint32 x = 0;
     qint32 y = 0;
     qint32 wheelDelta = 0;

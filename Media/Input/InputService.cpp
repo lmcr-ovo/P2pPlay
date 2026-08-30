@@ -26,7 +26,15 @@ InputService::~InputService() {
 
 void InputService::setRole(const Role &role) {
     role_ = role;
-    worker_->setRole(role_);
+    InputServiceWorker* worker = worker_;
+
+    QMetaObject::invokeMethod(
+            worker,
+            [worker, role] {
+                worker->setRole(role);
+            },
+            Qt::QueuedConnection
+    );
 }
 
 InputServiceWorker * InputService::worker() const {
@@ -34,11 +42,28 @@ InputServiceWorker * InputService::worker() const {
 }
 
 void InputService::start() {
-    worker_->start();
+    InputServiceWorker* worker = worker_;
+
+    QMetaObject::invokeMethod(
+            worker,
+            [worker] {
+                worker->start();
+            },
+            Qt::QueuedConnection
+    );
 }
 
 void InputService::setControlActive(bool active) {
     if (role_ == Role::Guest) {
         worker_->setControlActive(active);
+
+        InputServiceWorker* worker = worker_;
+        QMetaObject::invokeMethod(
+                worker,
+                [worker, active] {
+                    worker->setControlActive(active);
+                },
+                Qt::QueuedConnection
+        );
     }
 }

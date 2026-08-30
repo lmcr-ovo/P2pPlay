@@ -34,8 +34,8 @@ struct P2pConfig {
 struct VideoConfig {
     quint16 fps = 60;
 
-    quint16 width = 1280;
-    quint16 height = 800;
+    quint16 width = 1920;
+    quint16 height = 1080;
 
     quint16 jpegQuality = 50;
     VideoSampleCodecType codecType = VideoSampleCodecType::H264;
@@ -73,20 +73,60 @@ struct VideoConfig {
         return fps > 0 ? 1000 / fps : 20;
     }
 
-    quint16 getBitrateKbpsMax() const {
+    quint32 getBitrateKbpsMax() const {
         return bppMax * width * height * fps / 1000;
     }
 
-    quint16 getBitrateKbpsMin() const {
+    quint32 getBitrateKbpsMin() const {
         return bppMin * width * height * fps / 1000;
     }
 
+};
+
+struct OpusCodecConfig {
+    int sampleRate = 48000;
+    int channels = 1;
+    int frameDurationMs = 20;
+    int bitrateBps = 32000;
+    int complexity = 5;
+    bool inbandFecEnabled = false;
+    bool dtxEnabled = false;
+    int maxPacketBytes = 4000;
+
+    static bool validateOpusCodecConfig(const OpusCodecConfig& config,
+                                        QString* errorMessage);
+};
+
+struct AudioConfig {
+    bool microphoneEnabled = true;
+    bool desktopAudioEnabled = true;
+    bool playbackEnabled = true;
+    bool avSyncEnabled = true;
+
+    OpusCodecConfig microphoneCodec {
+            48000, 1, 20,
+            32000, 5, false,
+            false, 4000
+    };
+
+    OpusCodecConfig desktopCodec {
+            48000, 2, 20,
+            128000, 5, false,
+            false, 4000
+    };
+
+    int playbackBufferMs = 80;
+    double microphonePlaybackGain = 1.0;
+    double desktopPlaybackGain = 0.8;
+    int mixerFrameDurationMs = 20;
+    int mixerMaxQueuedFramesPerSource = 10;
 };
 
 struct AppConfig {
     ServerConfig server;
     P2pConfig p2p;
     VideoConfig video;
+    AudioConfig audio;
 
     static AppConfig defaultHost();
     static AppConfig defaultGuest();

@@ -8,6 +8,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 
 set(CMAKE_PREFIX_PATH "D:/Qt5/5.14.0/mingw73_64")
+set(Opus_DIR "D:/Tools/opus/opus-1.4/install-mingw/lib/cmake/Opus")
+
 find_package(Qt5 REQUIRED COMPONENTS Widgets Gui Core Network)
 add_subdirectory(Common)
 add_subdirectory(Tcp)
