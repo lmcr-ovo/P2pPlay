@@ -120,6 +120,7 @@ struct AudioConfig {
     double desktopPlaybackGain = 0.8;
     int mixerFrameDurationMs = 20;
     int mixerMaxQueuedFramesPerSource = 10;
+    int audioReorderMaxBufferedFrames = 5;
 };
 
 struct AppConfig {

@@ -1,0 +1,23 @@
+QFactoryLoader::QFactoryLoader() checking directory path "D:/CODE/C++/qt/P2Pplay/P2Pplay-release/Client/test/platforms" ...
+QFactoryLoader::QFactoryLoader() looking at "D:/CODE/C++/qt/P2Pplay/P2Pplay-release/Client/test/platforms/qwindows.dll"
+Found metadata in lib D:/CODE/C++/qt/P2Pplay/P2Pplay-release/Client/test/platforms/qwindows.dll, metadata=
+{
+    "IID": "org.qt-project.Qt.QPA.QPlatformIntegrationFactoryInterface.5.3",
+    "MetaData": {
+        "Keys": [
+            "windows"
+        ]
+    },
+    "archreq": 0,
+    "className": "QWindowsIntegrationPlugin",
+    "debug": false,
+    "version": 331264
+}
+
+
+Got keys from plugin meta data ("windows")
+loaded library "D:/CODE/C++/qt/P2Pplay/P2Pplay-release/Client/test/platforms/qwindows.dll"
+QFactoryLoader::QFactoryLoader() checking directory path "D:/CODE/C++/qt/P2Pplay/P2Pplay-release/Client/test/platformthemes" ...
+QFactoryLoader::QFactoryLoader() checking directory path "D:/CODE/C++/qt/P2Pplay/P2Pplay-release/Client/test/styles" ...
+media host started, clientId: Alice
+QFactoryLoader::QFactoryLoader() checking directory path "D:/CODE/C++/qt/P2Pplay/P2Pplay-release/Client/test/accessiblebridge" ...

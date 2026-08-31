@@ -9,6 +9,7 @@
 #include "Audio/AudioSample.h"
 
 struct DecodedAudioFrame {
+    quint32 seq = 0;
     AudioStreamKind streamKind = AudioStreamKind::Unknown;
     quint64 ptsMs = 0;
     int sampleRate = 48000;

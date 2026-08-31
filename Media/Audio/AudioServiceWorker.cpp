@@ -46,6 +46,10 @@ AudioServiceWorker::AudioServiceWorker(QObject* parent)
                 audioPlayback_.playPcm(pcm);
             });
     connect(&audioPlayback_,
+            &AudioPlayback::logReceived,
+            this,
+            &AudioServiceWorker::logReceived);
+    connect(&audioPlayback_,
             &AudioPlayback::errorOccurred,
             this,
             &AudioServiceWorker::errorOccurred);
@@ -77,6 +81,7 @@ void AudioServiceWorker::applyConfig(const AppConfig& config) {
                          config_.desktopPlaybackGain);
     audioMixer_.setMaxQueuedFramesPerSource(
             config_.mixerMaxQueuedFramesPerSource);
+    resetReorderBuffers();
 
     if (wasRunning) {
         start();
@@ -121,6 +126,7 @@ void AudioServiceWorker::stop() {
     stopSources();
     audioMixer_.stop();
     audioPlayback_.stop();
+    resetReorderBuffers();
     microphoneEncoder_.close();
     desktopEncoder_.close();
     microphoneDecoder_.close();
@@ -245,8 +251,9 @@ void AudioServiceWorker::onAudioSampleBytesReceived(
             ? config_.microphoneCodec
             : config_.desktopCodec;
 
-    emit decodedAudioFrameReady(
+    enqueueDecodedFrame(
             DecodedAudioFrame{
+                    sample.seq,
                     sample.streamKind,
                     sample.captureTimeStampMs,
                     codecConfig.sampleRate,
@@ -286,6 +293,95 @@ bool AudioServiceWorker::ensureDecoder(AudioStreamKind kind) {
                desktopDecoder_.open(config_.desktopCodec);
     }
     return false;
+}
+
+void AudioServiceWorker::enqueueDecodedFrame(
+        const DecodedAudioFrame& frame) {
+    QMap<quint32, DecodedAudioFrame>* buffer = nullptr;
+    quint32* nextSeq = nullptr;
+    bool* seqValid = nullptr;
+
+    if (frame.streamKind == AudioStreamKind::Microphone) {
+        buffer = &microphoneReorderBuffer_;
+        nextSeq = &nextMicrophonePlaybackSeq_;
+        seqValid = &microphonePlaybackSeqValid_;
+    } else if (frame.streamKind == AudioStreamKind::Desktop) {
+        buffer = &desktopReorderBuffer_;
+        nextSeq = &nextDesktopPlaybackSeq_;
+        seqValid = &desktopPlaybackSeqValid_;
+    }
+
+    if (buffer == nullptr || nextSeq == nullptr || seqValid == nullptr) {
+        return;
+    }
+
+    if (!*seqValid) {
+        *nextSeq = frame.seq;
+        *seqValid = true;
+    }
+
+    if (frame.seq < *nextSeq || buffer->contains(frame.seq)) {
+        return;
+    }
+
+    buffer->insert(frame.seq, frame);
+    drainReorderBuffer(frame.streamKind);
+}
+
+void AudioServiceWorker::drainReorderBuffer(AudioStreamKind kind) {
+    QMap<quint32, DecodedAudioFrame>* buffer = nullptr;
+    quint32* nextSeq = nullptr;
+    bool* seqValid = nullptr;
+
+    if (kind == AudioStreamKind::Microphone) {
+        buffer = &microphoneReorderBuffer_;
+        nextSeq = &nextMicrophonePlaybackSeq_;
+        seqValid = &microphonePlaybackSeqValid_;
+    } else if (kind == AudioStreamKind::Desktop) {
+        buffer = &desktopReorderBuffer_;
+        nextSeq = &nextDesktopPlaybackSeq_;
+        seqValid = &desktopPlaybackSeqValid_;
+    }
+
+    if (buffer == nullptr || nextSeq == nullptr || seqValid == nullptr ||
+        !*seqValid) {
+        return;
+    }
+
+    while (!buffer->isEmpty()) {
+        if (buffer->contains(*nextSeq)) {
+            const DecodedAudioFrame frame = buffer->take(*nextSeq);
+            emit decodedAudioFrameReady(frame);
+            ++(*nextSeq);
+            continue;
+        }
+
+        const int maxBufferedFrames =
+                qMax(1, config_.audioReorderMaxBufferedFrames);
+        if (buffer->size() < maxBufferedFrames) {
+            break;
+        }
+
+        const quint32 firstAvailableSeq = buffer->firstKey();
+        if (firstAvailableSeq > *nextSeq) {
+            emit logReceived(QString("audio packet lost: stream=%1 missingSeq=%2 nextSeq=%3")
+                                     .arg(static_cast<int>(kind))
+                                     .arg(*nextSeq)
+                                     .arg(firstAvailableSeq));
+            *nextSeq = firstAvailableSeq;
+        } else {
+            buffer->remove(firstAvailableSeq);
+        }
+    }
+}
+
+void AudioServiceWorker::resetReorderBuffers() {
+    microphoneReorderBuffer_.clear();
+    desktopReorderBuffer_.clear();
+    nextMicrophonePlaybackSeq_ = 0;
+    nextDesktopPlaybackSeq_ = 0;
+    microphonePlaybackSeqValid_ = false;
+    desktopPlaybackSeqValid_ = false;
 }
 
 void AudioServiceWorker::startSources() {

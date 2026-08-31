@@ -37,6 +37,11 @@ find_library(FFMPEG_AVUTIL_LIBRARY
         PATHS "${FFMPEG_ROOT}/lib"
         NO_DEFAULT_PATH)
 
+find_library(FFMPEG_SWRESAMPLE_LIBRARY
+        NAMES libswresample.dll.a swresample
+        PATHS "${FFMPEG_ROOT}/lib"
+        NO_DEFAULT_PATH)
+
 if(NOT FFMPEG_INCLUDE_DIR
         OR NOT FFMPEG_AVCODEC_LIBRARY
         OR NOT FFMPEG_SWSCALE_LIBRARY
@@ -89,6 +94,7 @@ add_library(Media
         Audio/AudioMixer.h Audio/AudioMixer.cpp
         Audio/AudioService.h Audio/AudioService.cpp
         Audio/AudioServiceWorker.h Audio/AudioServiceWorker.cpp
+        Audio/AudioFormatConverter.h Audio/AudioFormatConverter.cpp
 
         #---------------------------同步器-----------------------------------
         AvSync/AvSyncFrame.h
@@ -123,6 +129,7 @@ target_link_libraries(Media PUBLIC
         "${FFMPEG_AVCODEC_LIBRARY}"
         "${FFMPEG_SWSCALE_LIBRARY}"
         "${FFMPEG_AVUTIL_LIBRARY}"
+        "${FFMPEG_SWRESAMPLE_LIBRARY}"
         Opus::opus
         Qt5::Multimedia
         ole32)

@@ -7,6 +7,7 @@
 
 
 #include <QObject>
+#include <QMap>
 
 #include "AppConfig.h"
 #include "Role.h"
@@ -55,6 +56,9 @@ private:
     bool ensureMicrophoneEncoder();
     bool ensureDesktopEncoder();
     bool ensureDecoder(AudioStreamKind kind);
+    void enqueueDecodedFrame(const DecodedAudioFrame& frame);
+    void drainReorderBuffer(AudioStreamKind kind);
+    void resetReorderBuffers();
     void startSources();
     void stopSources();
 
@@ -67,6 +71,12 @@ private:
     AudioConfig config_;
     quint32 nextMicrophoneSeq_ = 0;
     quint32 nextDesktopSeq_ = 0;
+    QMap<quint32, DecodedAudioFrame> microphoneReorderBuffer_;
+    QMap<quint32, DecodedAudioFrame> desktopReorderBuffer_;
+    quint32 nextMicrophonePlaybackSeq_ = 0;
+    quint32 nextDesktopPlaybackSeq_ = 0;
+    bool microphonePlaybackSeqValid_ = false;
+    bool desktopPlaybackSeqValid_ = false;
 
     MicrophoneAudioSource microphoneSource_;
     DesktopAudioSource desktopSource_;

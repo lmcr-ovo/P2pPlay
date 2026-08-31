@@ -9,6 +9,8 @@
 #include <QByteArray>
 #include <QObject>
 
+#include "AudioFormatConverter.h"
+
 class AudioPlayback : public QObject {
     Q_OBJECT
 public:
@@ -21,11 +23,16 @@ public:
     void playPcm(const QByteArray& pcm);
 
 signals:
+    void logReceived(const QString& message);
     void errorOccurred(const QString& reason);
 
 private:
+    void flushPending();
+
     QAudioOutput* audioOutput_ = nullptr;
     QIODevice* outputDevice_ = nullptr;
+    AudioFormatConverter converter_;
+    QByteArray pendingPcm_;
     int sampleRate_ = 48000;
     int channels_ = 2;
     int bufferMs_ = 80;

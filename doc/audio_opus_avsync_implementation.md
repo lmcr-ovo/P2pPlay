@@ -25,6 +25,7 @@ Media/Audio/AudioOpusDecoder.h/.cpp
 Media/Audio/MicrophoneAudioSource.h/.cpp
 Media/Audio/DesktopAudioSource.h/.cpp
 Media/Audio/AudioPlayback.h/.cpp
+Media/Audio/AudioFormatConverter.h/.cpp
 Media/Audio/AudioMixer.h/.cpp
 Media/Audio/AudioService.h/.cpp
 Media/Audio/AudioServiceWorker.h/.cpp
@@ -1089,7 +1090,54 @@ private:
 };
 ```
 
-`AudioPlayback` 只负责把最终 PCM 写给 `QAudioOutput`，不认识“麦克风”或“桌面音频”。
+`AudioPlayback` 只负责把最终 PCM 写给 `QAudioOutput`。如果设备格式和内部 PCM 不一致，
+它会先交给 `AudioFormatConverter` 转换，再写入输出设备。
+
+调试时它会输出：
+
+```text
+audio playback device=...
+audio playback inputFormat=(...)
+audio playback outputFormat=(...)
+failed to initialize audio converter: ...
+failed to start audio output: ...
+audio format convert failed: ...
+```
+
+### 6.1.1 AudioFormatConverter
+
+```cpp
+// Media/Audio/AudioFormatConverter.h
+#pragma once
+
+#include <QAudioFormat>
+#include <QByteArray>
+
+class AudioFormatConverter {
+public:
+    bool open(const QAudioFormat& inputFormat,
+              const QAudioFormat& outputFormat);
+    QByteArray convert(const QByteArray& input);
+    void close();
+    bool isOpen() const;
+};
+```
+
+`AudioFormatConverter` 负责：
+
+```text
+输入 PCM 格式
+    -> swresample
+    -> 输出设备 PCM 格式
+```
+
+`AudioPlayback` 里保留的只是：
+
+```text
+内部统一 PCM
+    -> AudioFormatConverter
+    -> QAudioOutput
+```
 
 ```cpp
 // Media/Audio/AudioPlayback.cpp
@@ -1119,24 +1167,29 @@ bool AudioPlayback::start(int sampleRate, int channels, int bufferMs)
         return false;
     }
 
-    QAudioFormat format;
-    format.setSampleRate(sampleRate);
-    format.setChannelCount(channels);
-    format.setSampleSize(16);
-    format.setCodec("audio/pcm");
-    format.setByteOrder(QAudioFormat::LittleEndian);
-    format.setSampleType(QAudioFormat::SignedInt);
+    QAudioFormat inputFormat;
+    inputFormat.setSampleRate(sampleRate);
+    inputFormat.setChannelCount(channels);
+    inputFormat.setSampleSize(16);
+    inputFormat.setCodec("audio/pcm");
+    inputFormat.setByteOrder(QAudioFormat::LittleEndian);
+    inputFormat.setSampleType(QAudioFormat::SignedInt);
 
     const QAudioDeviceInfo outputInfo =
             QAudioDeviceInfo::defaultOutputDevice();
-    if (!outputInfo.isFormatSupported(format)) {
-        emit errorOccurred("playback format is not supported");
+    const QAudioFormat outputFormat = outputInfo.nearestFormat(inputFormat);
+
+    if (!converter_.open(inputFormat, outputFormat)) {
+        emit errorOccurred("failed to initialize audio converter");
         return false;
     }
 
-    audioOutput_ = new QAudioOutput(outputInfo, format, this);
+    audioOutput_ = new QAudioOutput(outputInfo, outputFormat, this);
     audioOutput_->setBufferSize(
-            sampleRate * channels * 2 * bufferMs / 1000);
+            outputFormat.sampleRate() *
+            outputFormat.channelCount() *
+            (outputFormat.sampleSize() / 8) *
+            bufferMs / 1000);
     outputDevice_ = audioOutput_->start();
     if (outputDevice_ == nullptr) {
         delete audioOutput_;
@@ -1159,6 +1212,7 @@ void AudioPlayback::stop()
         delete audioOutput_;
         audioOutput_ = nullptr;
     }
+    converter_.close();
 }
 
 bool AudioPlayback::isRunning() const
@@ -1174,14 +1228,17 @@ void AudioPlayback::playPcm(const QByteArray& pcm)
         return;
     }
 
-    const qint64 writable = outputDevice_->bytesFree();
-    if (writable <= 0) {
+    const QByteArray converted = converter_.convert(pcm);
+    if (converted.isEmpty()) {
         return;
     }
 
-    const int bytesToWrite = static_cast<int>(
-            qMin<qint64>(writable, pcm.size()));
-    if (outputDevice_->write(pcm.constData(), bytesToWrite) != bytesToWrite) {
+    const qint64 writable = outputDevice_->bytesFree();
+    if (writable < converted.size()) {
+        return;
+    }
+
+    if (outputDevice_->write(converted.constData(), converted.size()) != converted.size()) {
         emit errorOccurred("failed to write audio output");
     }
 }
@@ -1449,6 +1506,7 @@ qint16 AudioMixer::clampToS16(double value)
 #include "Audio/AudioSample.h"
 
 struct DecodedAudioFrame {
+    quint32 seq = 0;
     AudioStreamKind streamKind = AudioStreamKind::Unknown;
     quint64 ptsMs = 0;
     int sampleRate = 48000;
@@ -1465,6 +1523,7 @@ struct DecodedVideoFrame {
 ```
 
 时间戳统一使用 `captureTimeStampMs` 或解码后的 `ptsMs`，不要在编码器里重新生成。
+`seq` 用来做音频重排，同一条流内必须按 `seq` 递增进入播放链路。
 
 ---
 
@@ -1698,6 +1757,10 @@ void AudioServiceWorker::onAudioFrameToPlay(const DecodedAudioFrame& frame)
 ```
 
 `AudioMixer` 输出混合 PCM 后，再交给 `AudioPlayback`。
+
+实际接入时，`AudioServiceWorker` 不会把解码帧直接原样送进 `AudioMixer`，而是会先按
+`seq` 为麦克风流和桌面流分别做重排。只有连续序号到齐时才进入播放链路；如果缺号
+太久，就会跳过缺口，避免音频一直卡住等待。
 
 ```cpp
 // Media/Audio/AudioServiceWorker.cpp
